@@ -22,16 +22,16 @@ import SMCGrid as smc
 
 # -- 1. important parms
 debug = 1
-genGrid = 0
+genGrid = 1
 matFnm = 'glo1deg.mat'
-proj=ccrs.Robinson(central_longitude=180.)                                           
-#proj=ccrs.Robinson(central_longitude=0.)                                           
+proj=ccrs.Robinson(central_longitude=180.)
+#proj=ccrs.Robinson(central_longitude=0.)
 
 # -- 2. gen grid
 glbBathy = smc.MatBathy(matFnm, debug=debug)
 if genGrid:
     smc.GenSMCGrid(bathy_obj=glbBathy, debug=debug)
-                            
+
 # -- 3. Create Grid from file and plot the cells
 smcFnm = 'GLO1DEGCell.dat'
 obsFnm = 'GLO1DEGObs.dat'
@@ -45,7 +45,7 @@ glbSMC.readObs(obsFnm)
 # -- 3.1 obstruction plot
 plot_kws = dict(txtloc=(0.25, 0.88), dotsize=0.01,
                 cax_kws=dict(width='2.5%', height='90%', borderpad=.5,
-                             loc=6, bbox_to_anchor=(0.975, 0., 1, 1)), 
+                             loc=6, bbox_to_anchor=(0.975, 0., 1, 1)),
                 txtSize=5, cb_kws=dict(orientation='vertical'),
                 cbtxtSize=5)
 
@@ -60,7 +60,7 @@ plot_kws = dict(txtloc=(0.25, 0.88), dotsize=0.01,
 # -- cell plot
 fig, ax = smc.CartopyMap(proj, coast=False, gridbase=45, figsize=(6, 4))
 glbSMC.genPlot(filled=False, ax=ax, plot_var='depth', center=True, **plot_kws)
-               
+
 #plt.savefig(smcFnm[:-4]+'.pdf')
 plt.savefig(smcFnm[:-4]+'.png')
 plt.show()

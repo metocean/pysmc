@@ -62,13 +62,15 @@ import os
 import datetime
 from collections import OrderedDict
 
-import iris
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
 import numpy as np
 import pandas as pd
 import scipy.io as sio
+from tqdm import tqdm
+import logging
+import cmocean
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -81,6 +83,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 #import sys; sys.path.append(r'/media/qliu/Zuoer_dream/mylib')
 #from pyutil.colors import gen_cmap, ct10
 from colors import gen_cmap, ct10
+proj = ccrs.Robinson(central_longitude=180.)
 
 ###############################################################
 class MatBathy(object):
@@ -353,9 +356,10 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
 
     # -- check bathy data w/o island
     if debug:
-        plt.figure()
-        plt.contourf(bathy_obj.lon, bathy_obj.lat, bathy_obj.depth)
-        plt.colorbar()
+        fig, ax = CartopyMap(proj, coast=True, figsize=(10, 4))
+        mappable = ax.pcolormesh(bathy_obj.lon, bathy_obj.lat, bathy_obj.depth,
+                     cmap=cmocean.cm.deep_r, transform=ccrs.PlateCarree())
+        plt.colorbar(mappable)
         if island_list is not None:
             plt.plot(bathy_obj.lon[island_index[:, 1]],
                      bathy_obj.lat[island_index[:, 0]],
@@ -460,9 +464,14 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
     assert not con, "The size of SMC cells must increase gradually."
 
     if debug:
-        plt.contour(bathy_obj.lon, bathy_obj.lat, lp_map,
-                    levels=[-1, 1, 2, 4], colors='k', lw=1.2)
+        fig, ax = CartopyMap(proj, coast=True, figsize=(10, 4))
+        mappable = plt.pcolormesh(bathy_obj.lon, bathy_obj.lat, lp_map,
+                     cmap=cmocean.cm.deep_r, transform=ccrs.PlateCarree())
+        plt.colorbar(mappable)
+        plt.show()
 
+        import pdb
+        pdb.set_trace()
     # -- Intialize an long array to hold cell
     # -- i, j index, xsize, ysize, depth, sx, sy [round depth to nearest integer]
     smcCell = np.empty((ncel_thrd, 7), dtype='l')
@@ -492,7 +501,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
     if debug:
         print '**** [SMCGrid] Creating Grid ****'
 
-    for jrow in np.arange(jrow_beg, bathy_obj.nrow + jrow_end, 4):
+    for jrow in tqdm(np.arange(jrow_beg, bathy_obj.nrow + jrow_end, 4)):
         loc_parmg = np.digitize([jrow,], jparmg)[0] - 1
         ism = 2 ** np.abs(7-loc_parmg)
 
