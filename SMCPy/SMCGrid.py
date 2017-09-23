@@ -116,22 +116,26 @@ class MatBathy(object):
         # -- load in mat file
         self.gid = os.path.basename(fnm)[:-4]
         matDict = sio.loadmat(fnm, squeeze_me=True)
-        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm2', 'm3', 'mask_map',
-                'sx', 'sy']
+        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                'sx1', 'sy1']
         for key in keys:
             setattr(self, key, matDict[key])
 
         del keys, matDict
 
         # -- change sx, sy (* 100)
-        self.sx *= 100
-        self.sy *= 100
+        self.sx1 *= 100
+        self.sy1 *= 100
+
+        # -- change lon, lat to 1d arrays
+        self.lon = self.lon[0,:]
+        self.lat = self.lat[:,0]
 
         self._genInfo()
 
         # -- refine the bathy/depth data [only retain the largest water body]
         # -- Modify here if you need retain other watet bodies.
-        self.depth = np.where(np.equal(self.m3, 1), self.depth, 1.)
+        self.depth = np.where(np.equal(self.m4, 1), self.depth, 1.)
 
         if debug:
             print
@@ -365,6 +369,9 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                      bathy_obj.lat[island_index[:, 0]],
                      '+', ms=5, color='k', mew=1.)
         plt.title('Bathy')
+        import pdb
+        pdb.set_trace()
+        plt.show()
 
     # -- refp: reference points [any point can be the reference point]
     #    for convenience, we should use (0, 0) or (zlon, zlat) of the bathy file
@@ -468,10 +475,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         mappable = plt.pcolormesh(bathy_obj.lon, bathy_obj.lat, lp_map,
                      cmap=cmocean.cm.deep_r, transform=ccrs.PlateCarree())
         plt.colorbar(mappable)
-        plt.show()
 
-        import pdb
-        pdb.set_trace()
     # -- Intialize an long array to hold cell
     # -- i, j index, xsize, ysize, depth, sx, sy [round depth to nearest integer]
     smcCell = np.empty((ncel_thrd, 7), dtype='l')
@@ -537,8 +541,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                 kdepth = np.max([kdepth, 5])
 
                 # ksx & ksy
-                ksx = np.rint(bathy_obj.sx[np.ix_(jneigh, ineigh)].mean())
-                ksy = np.rint(bathy_obj.sy[np.ix_(jneigh, ineigh)].mean())
+                ksx = np.rint(bathy_obj.sx1[np.ix_(jneigh, ineigh)].mean())
+                ksy = np.rint(bathy_obj.sy1[np.ix_(jneigh, ineigh)].mean())
 
                 N4 += 1; NL += 1
                 smcCell[NL-1] = [icel, jcel, ism*4, 4, kdepth, ksx, ksy]
@@ -570,8 +574,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                         if count_sea2 == 2*ism*2:
                             kdepth = np.rint(-1 * sea_cells.mean())
                             kdepth = np.max([kdepth, 5])
-                            ksx = np.rint(bathy_obj.sx[np.ix_(jneigh, ineigh)].mean())
-                            ksy = np.rint(bathy_obj.sy[np.ix_(jneigh, ineigh)].mean())
+                            ksx = np.rint(bathy_obj.sx1[np.ix_(jneigh, ineigh)].mean())
+                            ksy = np.rint(bathy_obj.sy1[np.ix_(jneigh, ineigh)].mean())
 
                         if np.equal(count_sea, 4*ism*4) and (
                            lp_map[jrow+j2, icol+i2] >= 2):
@@ -616,8 +620,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                                         if np.equal(count_sea, 1*ism*1):
                                             kdepth = np.rint(-1*sea_cells.mean())
                                             kdepth = np.max([kdepth, 5])
-                                            ksx = np.rint(bathy_obj.sx[jneigh, ineigh].mean())
-                                            ksy = np.rint(bathy_obj.sy[jneigh, ineigh].mean())
+                                            ksx = np.rint(bathy_obj.sx1[jneigh, ineigh].mean())
+                                            ksy = np.rint(bathy_obj.sy1[jneigh, ineigh].mean())
 
                                             N1 += 1; NL += 1
                                             smcCell[NL-1] = [icel+i2+i1,
