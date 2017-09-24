@@ -30,7 +30,7 @@ proj=ccrs.Robinson(central_longitude=180.)
 # -- 2. gen grid
 glbBathy = smc.MatBathy(matFnm, debug=debug)
 if genGrid:
-    smc.GenSMCGrid(bathy_obj=glbBathy, debug=debug)
+    smc.GenSMCGrid(bathy_obj=glbBathy, depth_threshold=150, debug=debug)
 
 exit
 

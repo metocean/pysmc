@@ -287,7 +287,7 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                size2_bbox=None, size4_bbox=None,
                debug=True, land_value=1., ncel_thrd=1000000,
-               buoy_list=None, arctic=False):
+               buoy_list=None, arctic=False, depth_threshold=None):
     """
     Generate SMC 3 level grids.
 
@@ -323,6 +323,10 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
 
         buoy_list -- a list of buoys needed to be resolved with a high resolution
                      [using size-1 cell around these buoys]
+
+        depth_threshold -- If 0, refine grid based on land.
+                           If > 0, refine based on this depth threshold
+
     Note:
         In order to simplify the calculation in WW3, SMC grids should be
         strictly arranged as size-1-2-4 cells, that is, size 1 levels must
@@ -333,7 +337,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         the effect of these islands and buoys on the level map.
     """
     # -- Refine un-resolved small islands
-    if island_list is not None or buoy_list is not None:
+    if island_list is not None or buoy_list is not None or depth_threshold is not None:
         island_kwds = dict(zlon=bathy_obj.zlon, zlat=bathy_obj.zlat,
                            dlon=bathy_obj.dlon, dlat=bathy_obj.dlat,
                            nrow=bathy_obj.nrow, ncol=bathy_obj.ncol)
@@ -369,9 +373,6 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                      bathy_obj.lat[island_index[:, 0]],
                      '+', ms=5, color='k', mew=1.)
         plt.title('Bathy')
-        import pdb
-        pdb.set_trace()
-        plt.show()
 
     # -- refp: reference points [any point can be the reference point]
     #    for convenience, we should use (0, 0) or (zlon, zlat) of the bathy file
@@ -431,6 +432,28 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         lp_val = lp_map[island_index2[:, 0], island_index2[:, 1]]
         lp_val = np.where(np.equal(lp_val, 4), 2, lp_val)
         lp_map[island_index2[:, 0], island_index2[:, 1]] = lp_val
+
+    # -- depth threshold
+    if depth_threshold is not None:
+        island_index = np.array([[0, 0]], dtype='l') # Initialize
+        island_index2= np.array([[0, 0]], dtype='l') # Initialize
+        shallow = np.where(bathy_obj.depth > -depth_threshold)
+
+        for ii in range(0,shallow[0].size):
+            island = Island(lat=bathy_obj.lat[shallow[0][ii]],
+                            lon=bathy_obj.lon[shallow[1][ii]], bthrd=1)
+            temp_index, temp_index2 = island.absneigh(**island_kwds)
+            island_index = np.r_[island_index, temp_index]
+            island_index2= np.r_[island_index2, temp_index2]
+
+        island_index = island_index[1:,:]
+        island_index2 = island_index2[1:,:]
+
+        lp_map[island_index[:, 0], island_index[:, 1]] = 1
+        lp_val = lp_map[island_index2[:, 0], island_index2[:, 1]]
+        lp_val = np.where(np.equal(lp_val, 4), 2, lp_val)
+        lp_map[island_index2[:, 0], island_index2[:, 1]] = lp_val
+
 
     # -- kwds of FindLevelLoc
     fll_kwds = dict(lon1d=bathy_obj.lon, lat1d=bathy_obj.lat)
