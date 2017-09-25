@@ -1,7 +1,7 @@
 % THIS IS AN EXAMPLE SCRIPT FOR GENERATING A GRID AND CAN BE USED 
 % AS  A TEMPLATE FOR DESIGNING GRIDS
 
-function []=create_grid_func_smcbase(id,latmin,latmax,lonmin,lonmax,dlat,dlon,ref_grid,boundary,IS_GLOBAL,LAKE_TOL,out_dir,testmode,fname_poly, shift_userpolys)
+function []=create_grid_smcbase(id,latmin,latmax,lonmin,lonmax,dlat,dlon,ref_grid,boundary,IS_GLOBAL,LAKE_TOL,out_dir,testmode,fname_poly, shift_userpolys)
 
 
 % 0. Initialization

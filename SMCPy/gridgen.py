@@ -114,8 +114,7 @@ class DockerRun(object):
             self.logger.info(val.strip())
 
     def pull(self):
-        self.logger.info("Pulling containers...")
-        self.logger.info("  ...head")
+        self.logger.info("Pulling container...")
         self.head = self.headclient.images.pull(self.dopts['image'])
 
     def down(self):
@@ -126,8 +125,7 @@ class DockerRun(object):
         self.head.remove(force=True)
 
     def up(self):
-        self.logger.info("Bringing up containers...")
-        self.logger.info("  ...head")
+        self.logger.info("Bringing up container...")
         self.head = self.headclient.containers.run(detach=True, command='sleep infinity', **self.dopts)
 
     def run(self):
