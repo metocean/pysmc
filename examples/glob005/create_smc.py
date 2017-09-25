@@ -23,7 +23,7 @@ from SMCPy import SMCGrid as smc
 # -- 1. important parms
 debug = 1
 genGrid = 1
-matFnm = 'out/nz.mat'
+matFnm = 'out/glb005.mat'
 proj=ccrs.Robinson(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
@@ -35,8 +35,8 @@ if genGrid:
 exit
 
 # -- 3. Create Grid from file and plot the cells
-smcFnm = 'NZCell.dat'
-obsFnm = 'NZObs.dat'
+smcFnm = 'glb005Cell.dat'
+obsFnm = 'glb005Obs.dat'
 glbSMC = smc.UnSMC(smcFnm, dlon=glbBathy.dlon, dlat=glbBathy.dlat,
                    refp=(glbBathy.zlon, glbBathy.zlat))#, proj=proj)
 glbSMC.readObs(obsFnm)
