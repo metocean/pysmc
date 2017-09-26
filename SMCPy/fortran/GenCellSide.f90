@@ -55,16 +55,17 @@ MODULE GenCellSide
 !!
  contains
 
- subroutine AdapGrid(cellfile)
+ subroutine AdapGrid(gridid)
       IMPLICIT NONE
-      CHARACTER(LEN=16):: cellfile
+      CHARACTER(LEN=16):: gridid, fname
 
    REAL:: CNST, CNST1, CNST2, CNST3
 
 !  Read Global Multiple-Cell info
 
-       OPEN(UNIT=9,FILE=cellfile,STATUS='OLD',IOSTAT=nn,ACTION='READ')
-       IF(nn /= 0) PRINT*,' File ',cellfile,' was not opened! '
+       fname = trim(gridid)//'Cell.dat'
+       OPEN(UNIT=9,FILE=trim(gridid)//'Cell.dat',STATUS='OLD',IOSTAT=nn,ACTION='READ')
+       IF(nn /= 0) PRINT*,' File ',fname,' was not opened! '
 !         READ (9,*) NC, N9, N8, N4, N2, N1
           READ (9,*) NC, N1, N2, N4
        DO J=1,NC
@@ -72,7 +73,7 @@ MODULE GenCellSide
 !  G50SMC grid does not change y size so ICE(4,*) is constant 1.
        END DO
        CLOSE(9)
-       PRINT*, ' ', cellfile, ' read done  NC=', NC
+       PRINT*, ' ', fname, ' read done  NC=', NC
 
 !  Output a few to check input values
        DO J=NC/10,NC,NC/10
@@ -83,7 +84,7 @@ MODULE GenCellSide
 !  Call subroutines to generate flux faces
 
 !     Open files to store writups
-   OPEN(UNIT=16,FILE='G50SMCSide.txt',STATUS='UNKNOWN',IOSTAT=nn,ACTION='WRITE')
+   OPEN(UNIT=16,FILE=trim(gridid)//'SMCSide.txt',STATUS='UNKNOWN',IOSTAT=nn,ACTION='WRITE')
    IF(nn /= 0) PRINT*,' File messgs.txt was not opened! '
 
 !     Header messages and configuration information 
@@ -110,9 +111,10 @@ MODULE GenCellSide
 
 
 ! Subroutine that generates the cell side information
- SUBROUTINE CellSide
+ SUBROUTINE CellSide(gridid)
    IMPLICIT NONE
    REAL:: CNST, CNST1, CNST2, CNST3
+   CHARACTER(LEN=16):: gridid
 
 !!    Test integer division for boundary cell numbers
 !!    Size 2**n cell should bounded by -n cells
@@ -610,7 +612,7 @@ MODULE GenCellSide
 !!  Output ISD JSD variables for later use
       WRITE(6,*) " Storing face array info NU,NV=", NU, NV
 
-   OPEN(UNIT=10,FILE='G50GISide.d',STATUS='UNKNOWN',IOSTAT=nn)
+   OPEN(UNIT=10,FILE=trim(gridid)//'GISide.d',STATUS='UNKNOWN',IOSTAT=nn)
    IF(nn /= 0) PRINT*,' File Pros was not opened! '
 !     WRITE(10,FMT='(1x,i8)') NU
       DO I=1,NU
@@ -618,7 +620,7 @@ MODULE GenCellSide
       END DO
    CLOSE(10)
 
-   OPEN(UNIT=11,FILE='G50GJSide.d',STATUS='UNKNOWN',IOSTAT=nn)
+   OPEN(UNIT=11,FILE=trim(gridid)//'GJSide.d',STATUS='UNKNOWN',IOSTAT=nn)
    IF(nn /= 0) PRINT*,' File Pros was not opened! '
 !     WRITE(11,FMT='(1x,i8)') NV
       DO J=1,NV
@@ -630,6 +632,8 @@ MODULE GenCellSide
    PRINT*, ' I J-Sides output done '
 
  999  PRINT*, ' Sub CellSide ended.'
+
+ RETURN
 
  END SUBROUTINE CellSide
 
