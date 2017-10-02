@@ -20,9 +20,8 @@ MODULE GenCellSide
 ! Parameters fixed in the program
    INTEGER,PARAMETER::NCL=110000, NFC=120000,   &
                     & NTS=576, NFTS=5, NWP=12,  &
-                    & MSWP=9,  NLat=384, NLon=512, NPol=NLat/2
-   REAL,PARAMETER:: BX=0.7031250, BY=0.4687500, BX0=-BX*0.5, BY0=-90.0, &
-        &    DT=10.0, DTR=1.0/DT, DTF=6.0,  &
+                    & MSWP=9
+   REAL,PARAMETER:: DT=10.0, DTR=1.0/DT, DTF=6.0, &
         &    AKH=1000.0, RCM=1.25
 
 !  Some physical and atmospheric constants
@@ -38,7 +37,7 @@ MODULE GenCellSide
 !  INTEGER, DIMENSION(7,NFC)::  ISD, JSD
    INTEGER, DIMENSION(7,NFC)::  ISD
    INTEGER, DIMENSION(8,NFC)::  JSD
-   INTEGER:: I,II,IJ,IJK,J,JJ,JK,JKL,K,KK,KL,KLM,L,LL,LM,LMN,M,MM,MN,N,NN
+   INTEGER:: I,II,IJ,IJK,J,JJ,JK,JKL,K,KK,KL,KLM,L,LL,LM,LMN,M,MM,MN,N,NN,NLat,NLon
    CHARACTER(LEN=8)::FLNAME(5), FLNM, FLZT, FL9NM*9 
 
 ! Initialised variables
@@ -55,14 +54,16 @@ MODULE GenCellSide
 !!
  contains
 
- subroutine AdapGrid(gridid)
+ subroutine AdapGrid(gridid, NLat, NLon, bx, by)
       IMPLICIT NONE
       CHARACTER(LEN=16):: gridid, fname
-
-   REAL:: CNST, CNST1, CNST2, CNST3
+      INTEGER::  NLat, NLon, NPol
+      REAL:: CNST, CNST1, CNST2, CNST3, bx, by, bx0, by0
 
 !  Read Global Multiple-Cell info
-
+       NPol=NLat/2
+       bx0=-bx*0.5 
+       BY0=-90.0
        fname = trim(gridid)//'Cell.dat'
        OPEN(UNIT=9,FILE=trim(gridid)//'Cell.dat',STATUS='OLD',IOSTAT=nn,ACTION='READ')
        IF(nn /= 0) PRINT*,' File ',fname,' was not opened! '
@@ -83,6 +84,7 @@ MODULE GenCellSide
 
 !  Call subroutines to generate flux faces
 
+   CALL CellSide(gridid)
 !     Open files to store writups
    OPEN(UNIT=16,FILE=trim(gridid)//'SMCSide.txt',STATUS='UNKNOWN',IOSTAT=nn,ACTION='WRITE')
    IF(nn /= 0) PRINT*,' File messgs.txt was not opened! '

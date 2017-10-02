@@ -287,7 +287,8 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                size2_bbox=None, size4_bbox=None,
                debug=True, land_value=1., ncel_thrd=1000000,
-               buoy_list=None, arctic=False, depth_threshold=None):
+               buoy_list=None, arctic=False, depth_threshold=None,
+               gen_cell_sides=True):
     """
     Generate SMC 3 level grids.
 
@@ -717,11 +718,18 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         print >>f, 'reference point:', refp
         print >>f, 'i0, j0:', i0, j0
 
+    if gen_cell_sides:
+        genCellSides(bathy_obj.gid.upper(),
+                     bathy_obj.ww3_grid['NY'],
+                     bathy_obj.ww3_grid['NX'],
+                     bathy_obj.ww3_grid['DX'],
+                     bathy_obj.ww3_grid['DX'])
+
     return smcCell
 
 ###############################################################
 # -- CartopyMap
-def CartopyMap(proj=None, resolution='50m', gridbase=10, land=False,
+def CartopyMap(proj=ccrs.Robinson(), resolution='50m', gridbase=10, land=False,
                coast=True, nrows=1, ncols=1, **fig_kw):
     """
     Create a map by Cartopy
@@ -795,6 +803,7 @@ class UnSMC(object):
         # -- header
         with open(fnm) as f:
             header = np.array(f.readline().strip().split()).astype('l')
+            #(self.NL, self.N1, self.N2, self.N4) = header
             (self.NL, self.N1, self.N2, self.N4, self.N8) = header
 
         # -- contents
@@ -1021,12 +1030,28 @@ class UnSMC(object):
                 timeStr = str(self.time)
 
             info = '{:s}\n    Max: {:.1f}\n    Min: {:.1f}'.format(
-                    timeStr, getattr(self, plot_var).max(), get(self, plot_var).min())
+                    timeStr, getattr(self, plot_var).max(), getattr(self, plot_var).min())
 
         if txtloc is None: txtloc = (0.1, 0.85)
         ax.text(txtloc[0], txtloc[1], info, ha='left',
                 va='top', multialignment='left', transform=ax.transAxes,
                 fontsize=txtSize, color=ct10[3])
+
+def genCellSides(gid, nlat, nlon, dlat, dlon):
+    """
+    genCellSides
+
+    Generate cell sides using wrapped fortran code
+    ----
+    Input args:
+        gid - Grid id
+        nlat, nlon - lat/lon dimensions of grid
+    """
+    from  SMCPy.fortran.GenCellSide import gencellside
+    gencellside.adapgrid(gid, nlat, nlon, dlat, dlon)
+    # gencellside.cellside(gid)
+    print "Sorting face arrays..."
+    SortFaceArray(gid+'GISide.d', gid+'GJSide.d')
 
 #        return ax
 

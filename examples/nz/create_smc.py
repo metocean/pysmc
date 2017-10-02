@@ -30,9 +30,8 @@ proj=ccrs.Robinson(central_longitude=180.)
 # -- 2. gen grid
 glbBathy = smc.MatBathy(matFnm, debug=debug)
 if genGrid:
-    smc.GenSMCGrid(bathy_obj=glbBathy, depth_threshold=150, debug=debug)
-
-exit
+    # smc.GenSMCGrid(bathy_obj=glbBathy, depth_threshold=150, debug=debug)
+    smc.GenSMCGrid(bathy_obj=glbBathy, debug=debug, gen_cell_sides=True)
 
 # -- 3. Create Grid from file and plot the cells
 smcFnm = 'NZCell.dat'
@@ -51,13 +50,13 @@ plot_kws = dict(txtloc=(0.25, 0.88), dotsize=0.01,
                 txtSize=5, cb_kws=dict(orientation='vertical'),
                 cbtxtSize=5)
 
-#fig, axs = smc.CartopyMap(proj, coast=True, gridbase=30., nrows=2, ncols=1,
-#                          figsize=(4, 7.5))
-#glbSMC.genPlot(filled=True, ax=axs[0], plot_var='sx', center=False, **plot_kws)
-#glbSMC.genPlot(filled=True, ax=axs[1], plot_var='sy', center=False, **plot_kws)
-##plt.tight_layout()
-#plt.savefig(obsFnm[:-4]+'.png')
-#plt.close()
+fig, axs = smc.CartopyMap(proj, coast=True, gridbase=30., nrows=2, ncols=1,
+                         figsize=(4, 7.5))
+glbSMC.genPlot(filled=True, ax=axs[0], plot_var='sx', center=False, **plot_kws)
+glbSMC.genPlot(filled=True, ax=axs[1], plot_var='sy', center=False, **plot_kws)
+#plt.tight_layout()
+plt.savefig(obsFnm[:-4]+'.png')
+plt.close()
 
 # -- cell plot
 fig, ax = smc.CartopyMap(proj, coast=False, gridbase=45, figsize=(6, 4))
