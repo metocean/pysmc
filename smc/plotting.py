@@ -27,23 +27,48 @@ class SMCPatchCollection(object):
         self.crs = crs          # coordinate reference system
 
 
+def load_ww3_txt(fnm):
+    ret=[]
+    with open(fnm) as f:
+        f.readline()
+        for line in f.readlines():
+            ret += line.split()
+    return np.array(ret, dtype='float')
+
 def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
         field='hs', tidx=0, clim=[None,None]):
 
     if not isinstance(dataset, nc.Dataset):
         raise TypeError("Dataset should be a netCDF4 dataset object")
 
+    ## load field:
+    print " + Loading field data"
+    fld = dataset.variables[field][tidx,:]
+
+    plot_region_fld(fld, smc_patch_collection, lon1=lon1, lat1=lat1, lon2=lon2,
+            lat2=lat2, field=field, tidx=tidx, clim=clim)
+
+def plot_region_txt(fnm, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
+        field='hs', tidx=0, clim=[None,None]):
+
+    ## load field:
+    print " + Loading field data"
+    fld = load_ww3_txt(fnm)
+
+    plot_region_fld(fld, smc_patch_collection, lon1=lon1, lat1=lat1,
+             lon2=lon2, lat2=lat2, field=field, tidx=tidx, clim=clim)
+
+def plot_region_fld(fldall, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
+        field='hs', tidx=0, clim=[None,None]):
+
     if not isinstance(smc_patch_collection, SMCPatchCollection):
         raise TypeError("smc_patch_collection should be a SMCPatchCollection object")
-
 
     p = smc_patch_collection.pcol
     m = smc_patch_collection.mask
     crs = smc_patch_collection.crs
 
-    ## load field:
-    print " + Loading field data"
-    fld = dataset.variables[field][tidx,:][m]
+    fld = fldall[m]
 
     # get color indices:
     cnorm = mpl_colors.Normalize(clim[0], clim[1])
@@ -52,10 +77,18 @@ def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, 
 
     # set colors in patch collection:
     p.set_facecolors(cols)
-    p.set_edgecolors('none')
+    #p.set_edgecolors('none')
+    p.set_edgecolors('gray')
 
     print " + Adding patches to axes"
     plt.gca().add_collection(p)
+
+    # -- temporary while testing --#
+    plt.gca().set_extent([lon1, lon2, lat1, lat2])
+    #plt.gca().set_extent([lon1-10, lon2+10, lat1-10, lat2+10])
+    cax = plt.cm.ScalarMappable(cmap=cm)
+    cax.set_array(fld)
+    plt.colorbar(cax)
 
 def generate_patch_collection_from_cellfille(cellfile, nlev, x0, y0, dx, dy, jshift=0,
     lon1=None, lat1=None, lon2=None, lat2=None, target_crs=ccrs.PlateCarree()):
@@ -76,7 +109,7 @@ def generate_patch_collection_from_cellfille(cellfile, nlev, x0, y0, dx, dy, jsh
             PlateCarree. Needs to match the coordinate system you plan to use
             to plot the patches.
     """
-            
+
     with open(cellfile,'r') as fid:
         line = fid.readline()
         hdr = np.fromstring(line, sep=' ', count=5, dtype=np.int)
@@ -108,7 +141,7 @@ def generate_patch_collection_from_cellfille(cellfile, nlev, x0, y0, dx, dy, jsh
     print "[INFO] Smallest cell dlon, dlat:",dlon1,dlat1
     #return lons,lats,ix,iy
 
-    
+
     # extract region from data:
     if lon1 is not None:
         m1 = np.logical_and(lons > lon1, lons < lon2)
@@ -181,7 +214,7 @@ def generate_patch_collection(dataset, lon1=None, lat1=None, lon2=None,
             PlateCarree. Needs to match the coordinate system you plan to use
             to plot the patches.
     """
-            
+
 
     if not isinstance(dataset, nc.Dataset):
         raise TypeError("Dataset should be a netCDF4 dataset object")
@@ -191,13 +224,13 @@ def generate_patch_collection(dataset, lon1=None, lat1=None, lon2=None,
         lons = dataset.variables['lons'][:]
     except KeyError:
         lons = dataset.variables['longitude'][:]
-        
+
     lons[lons>180] -= 360 # TODO: Remove this and do longitude alignment
     try:
         lats = dataset.variables['lats'][:]
     except KeyError:
         lats = dataset.variables['latitude'][:]
-    
+
     cx = dataset.variables['cx'][:]
     cy = dataset.variables['cy'][:]
 
@@ -205,7 +238,7 @@ def generate_patch_collection(dataset, lon1=None, lat1=None, lon2=None,
         if source_crs:
             lon1,lat1 = source_crs.transform_point(lon1,lat1,ccrs.PlateCarree())
             lon2,lat2 = source_crs.transform_point(lon2,lat2,ccrs.PlateCarree())
-    
+
     # extract region from data:
     if verbose > 0: print "generate_patch_collection: Extracting region"
     if lon1 is not None:
@@ -236,7 +269,7 @@ def generate_patch_collection(dataset, lon1=None, lat1=None, lon2=None,
 
     cx = cx[m]
     cy = cy[m]
-        
+
     lons = lons[m]
     lats = lats[m]
     #dlon = dataset.variables['cx'][:][m] * dataset.base_lon_size
@@ -319,10 +352,10 @@ def plot_region_timeseries(dataset, smc_patch_collection, output_fn_template, ti
         print " - plotting time idx %d" % t
         cols = generate_color_array(fld[t,:][m])
         p.set_facecolors(cols)
-       
+
         fn = output_fn_template.replace("<FCHR>","%03d" % t)
         plt.savefig(fn)
-    
+
     return p, m
 
 def generate_regular_grid_indices(dataset, rlons, rlats):
@@ -349,7 +382,7 @@ def generate_regular_grid_indices(dataset, rlons, rlats):
 
     # remove entries from query that have a distance of "inf"
     idx = np.where(np.isfinite(q[0]))[0]
-    
+
     return np.vstack([idx,q[1][idx]]).T
 
 def to_regular_grid(field, indices, gridsize):
@@ -360,3 +393,33 @@ def to_regular_grid(field, indices, gridsize):
     zi[ii] = field[indices[:,1]]
 
     return zi
+
+def plot_file(fn, **kwargs):
+    from ww3tools.core import createMap
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    d = nc.Dataset(fn, mode='r')
+    patches = generate_patch_collection(d,
+                verbose=1
+            )
+    plot_region(d, patches,
+                lon1=d.variables['longitude'][:].min(),
+                lon2=d.variables['longitude'][:].max(),
+                lat1=d.variables['latitude'][:].min(),
+                lat2=d.variables['latitude'][:].max(),
+                **kwargs)
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Plot SMC file")
+    parser.add_argument('fn', type=str,
+                        help='file path')
+    parser.add_argument('-t' '--tidx', type=int, default=0,
+                        help='timestep to plot')
+    parser.add_argument('-v' '--variable', type=str, default=0,
+                        help='variable to plot')
+    args = parser.parse_args()
+    plot_file(args.fn, tidx=args.t__tidx, field=args.v__variable)
+    plt.show()
+
+if __name__ == "__main__":
+    main()
