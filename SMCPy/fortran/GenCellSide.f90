@@ -63,14 +63,17 @@ MODULE GenCellSide
 !  Read Global Multiple-Cell info
        NPol=NLat/2
        bx0=-bx*0.5 
-       BY0=-90.0
+       BY0=-55.0
        fname = trim(gridid)//'Cell.dat'
        OPEN(UNIT=9,FILE=trim(gridid)//'Cell.dat',STATUS='OLD',IOSTAT=nn,ACTION='READ')
        IF(nn /= 0) PRINT*,' File ',fname,' was not opened! '
 !         READ (9,*) NC, N9, N8, N4, N2, N1
           READ (9,*) NC, N1, N2, N4
        DO J=1,NC
-          READ (9,'(2i6,2i4,i6)') ICE(1,J), ICE(2,J), ICE(3,J), ICE(4,J), KG(J)
+!          READ (9,'(2i6,2i4,i6)') ICE(1,J), ICE(2,J), ICE(3,J), ICE(4,J), KG(J)
+!      TD - Added below line from jian-Guo example, as apposed to code shipped with WW3
+!           seems to fix propagation issues
+          READ (9,*) ICE(1,J), ICE(2,J), ICE(3,J), ICE(4,J), KG(J)
 !  G50SMC grid does not change y size so ICE(4,*) is constant 1.
        END DO
        CLOSE(9)
@@ -150,6 +153,8 @@ MODULE GenCellSide
          DO M=1, NC
 !!    Exclude last cell, the North Polar cell.
 !        DO M=1, NC-1
+
+         IF (L .eq. 1992) print*, "M", M, "L", L
 
 !!  Cyclic boundary for i-side at M-cell east side
             MN=ICE(1,M) + ICE(3,M)
@@ -246,6 +251,7 @@ MODULE GenCellSide
 !!  New full U-boundary cells proportional to cell x-sizes. JGLi01Apr2011
 !!  Updated for any 2**n sizes
 !!             ISD(5,II)=-INT( LOG(FLOAT(ISD(3,II)))/LOG(2.) + 0.01 )
+               ISD(5,II)=-INT( LOG(FLOAT(ISD(3,II)))/LOG(2.) + 0.01 )
                ISD(5,II)=-INT( LOG(FLOAT(ICE(3, L)))/LOG(2.) + 0.01 )
                ISD(6,II)=L
           ENDIF
@@ -585,9 +591,9 @@ MODULE GenCellSide
             DO k=i+1, NU
                IF( L .EQ. ISD(1,k) .AND. M .EQ. ISD(2,k) )  THEN
                  ij=ij+1
-                 WRITE(6,*) ij, ' Overlaping u face k, i, j, l, mm, m, n, nn' 
-                 WRITE(6,333) i, (ISD(n,i), n=1,7)
-                 WRITE(6,333) k, (ISD(n,k), n=1,7)
+                 ! WRITE(6,*) ij, ' Overlaping u face k, i, j, l, mm, m, n, nn' 
+                 ! WRITE(6,333) i, (ISD(n,i), n=1,7)
+                 ! WRITE(6,333) k, (ISD(n,k), n=1,7)
                ENDIF
             ENDDO
          IF(MOD(i, 10000) .eq. 0) WRITE(6,*) " Checked U face i=", i
@@ -602,9 +608,9 @@ MODULE GenCellSide
             DO k=j+1, NV
                IF( L .EQ. JSD(1,k) .AND. M .EQ. JSD(2,k) )  THEN
                  ij=ij+1
-                 WRITE(6,*) ij, ' Overlaping v face k, i, j, l, mm, m, n, nn'
-                 WRITE(6,333) j, (JSD(n,j), n=1,7)
-                 WRITE(6,333) k, (JSD(n,k), n=1,7)
+                 ! WRITE(6,*) ij, ' Overlaping v face k, i, j, l, mm, m, n, nn'
+                 ! WRITE(6,333) j, (JSD(n,j), n=1,7)
+                 ! WRITE(6,333) k, (JSD(n,k), n=1,7)
                ENDIF
             ENDDO
          IF(MOD(j, 10000) .eq. 0) WRITE(6,*) " Checked V face j=", j
