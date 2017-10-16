@@ -71,6 +71,7 @@ import scipy.io as sio
 from tqdm import tqdm
 import logging
 import cmocean
+import cPickle
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -113,15 +114,7 @@ class MatBathy(object):
         debug -- True or False. If true, more verbose infor. will be printed
                  to stdout. Any non-null/zero value will be regarded as True
         """
-        # -- load in mat file
-        self.gid = os.path.basename(fnm)[:-4]
-        matDict = sio.loadmat(fnm, squeeze_me=True)
-        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
-                'sx1', 'sy1']
-        for key in keys:
-            setattr(self, key, matDict[key])
-
-        del keys, matDict
+        self.fnm = fnm
 
         # -- change sx, sy (* 100)
         self.sx1 *= 100
@@ -154,6 +147,16 @@ class MatBathy(object):
             print 'NX, NY:', self.ww3_grid['NX'], self.ww3_grid['NY']
             print 'XE, YE:', self.ww3_grid['XE'], self.ww3_grid['YE']
 
+        def load_file(self)
+            """ load in mat file """
+            self.gid = os.path.basename(self.fnm)[:-4]
+            matDict = sio.loadmat(fnm, squeeze_me=True)
+            keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                    'sx1', 'sy1']
+            for key in keys:
+                setattr(self, key, matDict[key])
+            del keys, matDict
+
     def _genInfo(self):
         """
         Generate basic grid infor. for both size-1 and base level (used in
@@ -183,6 +186,19 @@ class MatBathy(object):
                               self.dlon*4)
         self.ww3_grid['YE'] = self.ww3_grid['Y1'] + (self.ww3_grid['NY']-1) * (
                               self.dlat*4)
+
+class PyBathy(object):
+
+        def load_file(self)
+            """ load in pickle file """
+            self.gid = os.path.basename(self.fnm)[:-4]
+            pyDict = cPickle.load(open(self.fnm, "rb"))
+            keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                    'sx1', 'sy1']
+            for key in keys:
+                setattr(self, key, matDict[key])
+            del keys, matDict
+
 
 ###############################################################
 # -- Island class

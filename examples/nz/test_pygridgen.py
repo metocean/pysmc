@@ -83,7 +83,7 @@ class TestPickle(Test):
         sx1 = np.zeros_like(self.g.depth_out)
         sy1 = np.zeros_like(self.g.depth_out)
         output = {'dlon': self.g.dx, 'dlat': self.g.dy, 'lon': self.g.lons,
-                'lat': self.g.lats, 'depth': self.g.depth_out, 'm3': m3, 'm4': m4,
+                'lat': self.g.lats, 'depth': self.g.depth_out.transpose(), 'm3': m3, 'm4': m4,
                 'mask_map': mask_map, 'sx1': sx1, 'sy1':sy1}
         import cPickle
         cPickle.dump(output, open("test.pkl", "wb" ))
@@ -92,7 +92,7 @@ class TestPickle(Test):
         print "Reading pickle"
         import cPickle
         self.pyDict = cPickle.load(open("test.pkl", "rb"))
-        self.pyDict['depth'] = self.pyDict['depth'].transpose()
+        self.pyDict['depth'] = self.pyDict['depth']
 
 if __name__ == "__main__":
     unittest.main()
