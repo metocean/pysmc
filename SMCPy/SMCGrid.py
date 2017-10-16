@@ -115,6 +115,7 @@ class MatBathy(object):
                  to stdout. Any non-null/zero value will be regarded as True
         """
         self.fnm = fnm
+        self.load_file()
 
         # -- change sx, sy (* 100)
         self.sx1 *= 100
@@ -147,15 +148,15 @@ class MatBathy(object):
             print 'NX, NY:', self.ww3_grid['NX'], self.ww3_grid['NY']
             print 'XE, YE:', self.ww3_grid['XE'], self.ww3_grid['YE']
 
-        def load_file(self)
-            """ load in mat file """
-            self.gid = os.path.basename(self.fnm)[:-4]
-            matDict = sio.loadmat(fnm, squeeze_me=True)
-            keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
-                    'sx1', 'sy1']
-            for key in keys:
-                setattr(self, key, matDict[key])
-            del keys, matDict
+    def load_file(self):
+        """ load in mat file """
+        self.gid = os.path.basename(self.fnm)[:-4]
+        matDict = sio.loadmat(self.fnm, squeeze_me=True)
+        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                'sx1', 'sy1']
+        for key in keys:
+            setattr(self, key, matDict[key])
+        del keys, matDict
 
     def _genInfo(self):
         """
@@ -189,15 +190,15 @@ class MatBathy(object):
 
 class PyBathy(object):
 
-        def load_file(self)
-            """ load in pickle file """
-            self.gid = os.path.basename(self.fnm)[:-4]
-            pyDict = cPickle.load(open(self.fnm, "rb"))
-            keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
-                    'sx1', 'sy1']
-            for key in keys:
-                setattr(self, key, matDict[key])
-            del keys, matDict
+    def load_file(self):
+        """ load in pickle file """
+        self.gid = os.path.basename(self.fnm)[:-4]
+        pyDict = cPickle.load(open(self.fnm, "rb"))
+        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                'sx1', 'sy1']
+        for key in keys:
+            setattr(self, key, matDict[key])
+        del keys, matDict
 
 
 ###############################################################
