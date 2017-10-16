@@ -2,7 +2,7 @@
 # Chris Bunney, Met Office.
 # Crown Copyright 2016
 
-import pygtk 
+import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
@@ -20,7 +20,7 @@ class SMCPlotGui:
 
     def __init__(self, filename=None):
         # initialise some variables:
-        self.ncfn = filename 
+        self.ncfn = filename
         self.pc = None
         self.cfacs = None
         self.proj = None
@@ -30,7 +30,7 @@ class SMCPlotGui:
         self.lon2=None
         self.lat1=None
         self.lat2=None
-        
+
         ###############
         ## GTK setup ##
         ###############
@@ -175,7 +175,7 @@ class SMCPlotGui:
         self.cmax.set_sensitive(False)
 
         self.cauto.connect('toggled', self.cauto_changed_event)
-        
+
 
         ## controls layout
         grid = gtk.Table(rows=8, columns=3)
@@ -210,7 +210,7 @@ class SMCPlotGui:
         btn_hbox.pack_start(btnNext, True, False, 0)
 
 
-        ## File details text view 
+        ## File details text view
         txt = gtk.TextBuffer()
         txt.set_text('Please load a file')
         self.tv_file_details = gtk.TextView(txt)
@@ -236,12 +236,12 @@ class SMCPlotGui:
         plotbox = gtk.VBox(homogeneous=False, spacing=0)
         plotbox.pack_start(self.canvas, expand=True, fill=True)
         plotbox.pack_end(toolbar, False, False)
-        
+
         box.pack_start(plotbox, expand=True, fill=True)
         box.pack_end(vbox, expand=False, fill=False)
         self.win.add(topbox)
 
-        
+
         ###################
         # connect signals:
         ###################
@@ -296,7 +296,7 @@ class SMCPlotGui:
                 val = ''
             else:
                 val = str(val)
-            
+
             o.set_text(val)
 
     def destroy(self, widget, data=None):
@@ -316,7 +316,7 @@ class SMCPlotGui:
         ret = dlg.run()
         if ret == gtk.RESPONSE_OK:
             self.ncfn = dlg.get_filename()
-        
+
         dlg.destroy()
 
         return (ret == gtk.RESPONSE_OK)
@@ -380,7 +380,7 @@ class SMCPlotGui:
             self.maxlat = 90
             self.minlon = 0
             self.maxlon = 360
-            
+
 
 
         return
@@ -554,12 +554,13 @@ class SMCPlotGui:
 
             end_iter = txt.get_end_iter()
             txt.insert(end_iter, "Adding patches to axes\n");
+            print("Adding patches to axes\n")
             while gtk.events_pending(): gtk.main_iteration_do(True)
 
             ax.cla()
             self.cm = ax.add_collection(self.pc.pcol)
 
-            if not global_extent: 
+            if not global_extent:
                 ax.set_extent((lon1, lon2, lat1, lat2), crs=ccrs.PlateCarree())
 
             if self.coast is not None:
@@ -571,13 +572,13 @@ class SMCPlotGui:
         elif newcoast:
             # coastline changed; clear axis and redraw:
             ax.cla()
-            
+
             end_iter = txt.get_end_iter()
             txt.insert(end_iter, "Adding patches to axes\n");
             while gtk.events_pending(): gtk.main_iteration_do(True)
             self.cm = ax.add_collection(self.pc.pcol)
 
-            if not global_extent: 
+            if not global_extent:
                 ax.set_extent((lon1, lon2, lat1, lat2), crs=ccrs.PlateCarree())
 
             if self.coast is not None:

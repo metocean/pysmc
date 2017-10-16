@@ -519,7 +519,10 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                                    # so we can exclude it
         icol_beg, icol_end = 0, -4
     else: # smc less than the normal grid
-        jrow_beg, jrow_end = 16, -16
+        # TODO - Why are these like this? Followup with Quixyang
+        # jrow_beg, jrow_end = 4, -16
+        # icol_beg, icol_end = 4, -8
+        jrow_beg, jrow_end = 4, -16
         icol_beg, icol_end = 4, -8
 
     # -- Wrap around 360 [only work for global domain]
@@ -729,7 +732,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
 
 ###############################################################
 # -- CartopyMap
-def CartopyMap(proj=ccrs.Robinson(), resolution='50m', gridbase=10, land=False,
+def CartopyMap(proj=ccrs.Robinson(central_longitude=180.), resolution='50m', gridbase=10, land=False,
                coast=True, nrows=1, ncols=1, **fig_kw):
     """
     Create a map by Cartopy
@@ -937,8 +940,7 @@ class UnSMC(object):
             if vint is None: vint = 1.
             filled = True
             norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax, clip=False)
-            cmap = gen_cmap(cmap='viridis', color=False)
-            cmap = gen_cmap(cmap='parula', color=False)
+            cmap = gen_cmap(cmap='jet', color=False)
             cbtl = 'SWH [m]'
             cticks = np.arange(vmin, vmax+.1*vint, vint)
 
