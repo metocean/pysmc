@@ -12,33 +12,30 @@
 !! Restore 25km SMC grid version without Arctic.  J G Li   12 Oct 2010 
 !! Rectify U-face boundary cell size.  J G Li  1 Apr 2011
 !! Adapted for SMC50 model face array generation.  J G Li  9 Aug 2011
-!!
+
+! -------------------- Tom Durrant Oct 2017 ------------------------
+!
+! - Looks like this can be generally applied to any 3 level grid
+! - Unused variables have been removed, and programs converted
+!   to subroutines with arguments to forego the need for recompiling
+! - The whole thing is then wrapped in a python module using f2py
+!
+! -------------------------------------------------------------------
 
 MODULE GenCellSide
    IMPLICIT NONE
 
 ! Parameters fixed in the program
-   INTEGER,PARAMETER::NCL=110000, NFC=120000,   &
-                    & NTS=576, NFTS=5, NWP=12,  &
-                    & MSWP=9
-   REAL,PARAMETER:: DT=10.0, DTR=1.0/DT, DTF=6.0, &
-        &    AKH=1000.0, RCM=1.25
+   INTEGER,PARAMETER::NCL=1250000, NFC=1360000
 
-!  Some physical and atmospheric constants
-   REAL,PARAMETER:: GRVTY=9.806,CPVAP=1004.5,RDRY=287.05, &
-        &    CT0=273.16,CALJO=4.1868,PATM=101325.0,ANGUL=7.2921E-5,  &
-        &    EPSLN=0.6220,CLIGHT=2.99792458E8, PIE=3.141592654
 
 ! Array variables to be used for data storage
-   REAL::  CC0, FC0, AKV, RDF, HDF
    REAL, DIMENSION(0:NCL):: DX, DY, DXR, DYR, CHG
    INTEGER:: NU, NV, NC, NS, NT, N9, N8, N4, N2, N1
    INTEGER:: ICE(4,NCL), KG(NCL)
-!  INTEGER, DIMENSION(7,NFC)::  ISD, JSD
    INTEGER, DIMENSION(7,NFC)::  ISD
    INTEGER, DIMENSION(8,NFC)::  JSD
    INTEGER:: I,II,IJ,IJK,J,JJ,JK,JKL,K,KK,KL,KLM,L,LL,LM,LMN,M,MM,MN,N,NN,NLat,NLon
-   CHARACTER(LEN=8)::FLNAME(5), FLNM, FLZT, FL9NM*9 
 
 ! Initialised variables
 
@@ -620,7 +617,7 @@ MODULE GenCellSide
 !!  Output ISD JSD variables for later use
       WRITE(6,*) " Storing face array info NU,NV=", NU, NV
 
-   OPEN(UNIT=10,FILE=trim(gridid)//'GISide.d',STATUS='UNKNOWN',IOSTAT=nn)
+   OPEN(UNIT=10,FILE=trim(gridid)//'ISide.d',STATUS='UNKNOWN',IOSTAT=nn)
    IF(nn /= 0) PRINT*,' File Pros was not opened! '
 !     WRITE(10,FMT='(1x,i8)') NU
       DO I=1,NU
@@ -628,7 +625,7 @@ MODULE GenCellSide
       END DO
    CLOSE(10)
 
-   OPEN(UNIT=11,FILE=trim(gridid)//'GJSide.d',STATUS='UNKNOWN',IOSTAT=nn)
+   OPEN(UNIT=11,FILE=trim(gridid)//'JSide.d',STATUS='UNKNOWN',IOSTAT=nn)
    IF(nn /= 0) PRINT*,' File Pros was not opened! '
 !     WRITE(11,FMT='(1x,i8)') NV
       DO J=1,NV
