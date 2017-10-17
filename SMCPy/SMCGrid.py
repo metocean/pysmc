@@ -1048,7 +1048,7 @@ def genCellSides(gid, nlat, nlon, dlat, dlon):
     gencellside.adapgrid(gid, nlat, nlon, dlat, dlon)
     # gencellside.cellside(gid)
     print "Sorting face arrays..."
-    SortFaceArray(gid+'GISide.d', gid+'GJSide.d')
+    SortFaceArray(gid+'ISide.d', gid+'JSide.d')
 
 #        return ax
 
