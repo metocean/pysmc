@@ -301,11 +301,10 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 
 ###############################################################
 # -- GenSMCGrid fuction
-def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
-               size2_bbox=None, size4_bbox=None,
-               debug=True, land_value=1., ncel_thrd=1000000,
-               buoy_list=None, arctic=False, depth_threshold=None,
-               gen_cell_sides=True):
+def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
+        size4_bbox=None, debug=True, land_value=1., ncel_thrd=1000000,
+        buoy_list=None, arctic=False, gen_cell_sides=True,
+        refining_depth=-250.):
     """
     Generate SMC 3 level grids.
 
@@ -342,8 +341,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         buoy_list -- a list of buoys needed to be resolved with a high resolution
                      [using size-1 cell around these buoys]
 
-        depth_threshold -- If 0, refine grid based on land.
-                           If > 0, refine based on this depth threshold
+        refining_depth -- If 0, refine grid based on land.
+                          If > 0, refine based on this depth threshold
 
     Note:
         In order to simplify the calculation in WW3, SMC grids should be
@@ -355,7 +354,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         the effect of these islands and buoys on the level map.
     """
     # -- Refine un-resolved small islands
-    if island_list is not None or buoy_list is not None or depth_threshold is not None:
+    if island_list is not None or buoy_list is not None:
         island_kwds = dict(zlon=bathy_obj.zlon, zlat=bathy_obj.zlat,
                            dlon=bathy_obj.dlon, dlat=bathy_obj.dlat,
                            nrow=bathy_obj.nrow, ncol=bathy_obj.ncol)
@@ -439,27 +438,6 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
         island_index2= np.array([[0, 0]], dtype='l') # Initialize
 
         for island in buoy_list:
-            temp_index, temp_index2 = island.absneigh(**island_kwds)
-            island_index = np.r_[island_index, temp_index]
-            island_index2= np.r_[island_index2, temp_index2]
-
-        island_index = island_index[1:,:]
-        island_index2 = island_index2[1:,:]
-
-        lp_map[island_index[:, 0], island_index[:, 1]] = 1
-        lp_val = lp_map[island_index2[:, 0], island_index2[:, 1]]
-        lp_val = np.where(np.equal(lp_val, 4), 2, lp_val)
-        lp_map[island_index2[:, 0], island_index2[:, 1]] = lp_val
-
-    # -- depth threshold
-    if depth_threshold is not None:
-        island_index = np.array([[0, 0]], dtype='l') # Initialize
-        island_index2= np.array([[0, 0]], dtype='l') # Initialize
-        shallow = np.where(bathy_obj.depth > -depth_threshold)
-
-        for ii in range(0,shallow[0].size):
-            island = Island(lat=bathy_obj.lat[shallow[0][ii]],
-                            lon=bathy_obj.lon[shallow[1][ii]], bthrd=1)
             temp_index, temp_index2 = island.absneigh(**island_kwds)
             island_index = np.r_[island_index, temp_index]
             island_index2= np.r_[island_index2, temp_index2]
@@ -573,7 +551,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
             ineigh = np.mod(icol + np.arange(-2*ism, 6*ism, dtype='l')
                             + ColMax, ColMax)
             neigh_cells = bathy_obj.depth[np.ix_(jneigh, ineigh)]
-            sea_cells = neigh_cells[np.where(neigh_cells<0.)]
+            sea_cells = neigh_cells[np.where(neigh_cells<refining_depth)]
             count_sea = sea_cells.size
 
             if np.equal(count_sea, 8*ism*8) and (lp_map[jrow, icol] >= 4):
@@ -604,7 +582,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                         ineigh = np.mod(icol + i2 + np.arange(-1*ism, 3*ism) +
                                         ColMax, ColMax)
                         neigh_cells = bathy_obj.depth[np.ix_(jneigh, ineigh)]
-                        sea_cells = neigh_cells[np.where(neigh_cells<0.)]
+                        sea_cells = neigh_cells[np.where(neigh_cells<refining_depth)]
                         count_sea = sea_cells.size
 
                         # -- 2*ism*2
@@ -612,7 +590,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                         ineigh = np.mod(icol + i2 + np.arange(0, 2*ism) +
                                         ColMax, ColMax)
                         neigh_cells = bathy_obj.depth[np.ix_(jneigh, ineigh)]
-                        sea_cells = neigh_cells[np.where(neigh_cells<0.)]
+                        sea_cells = neigh_cells[np.where(neigh_cells<refining_depth)]
                         count_sea2 = sea_cells.size
 
                         if count_sea2 == 2*ism*2:
@@ -658,7 +636,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None,
                                         ineigh = np.mod(ineigh + ColMax, ColMax)
 
                                         neigh_cells = bathy_obj.depth[jneigh, ineigh]
-                                        sea_cells = neigh_cells[np.where(neigh_cells<0.)]
+                                        sea_cells = neigh_cells[np.where(neigh_cells<0)]
                                         count_sea = sea_cells.size
 
                                         if np.equal(count_sea, 1*ism*1):
