@@ -34,60 +34,77 @@ int main()
   status = nc_inq_dimid (ncid, "lat", &latdimid);
   g_assert(status == NC_NOERR);
 
-  nc_inq_dimlen(ncid, londimid, &nlons);
+  status = nc_inq_dimlen(ncid, londimid, &nlons);
   g_assert(status == NC_NOERR);
-  nc_inq_dimlen(ncid, latdimid, &nlats);
+  status = nc_inq_dimlen(ncid, latdimid, &nlats);
   g_assert(status == NC_NOERR);
 
   lons_in = malloc(nlons*sizeof(double));
-  nc_get_var_double(ncid, lonid, lons_in);
+  status = nc_get_var_double(ncid, lonid, lons_in);
+  g_assert(status == NC_NOERR);
   lats_in = malloc(nlats*sizeof(double));
-  nc_get_var_double(ncid, latid, lats_in);
-
-  nc_get_att_double(ncid, zid, "_FillValue", &fill_value_in);
+  status = nc_get_var_double(ncid, latid, lats_in);
+  g_assert(status == NC_NOERR);
   
+  status = nc_get_att_double(ncid, zid, "_FillValue", &fill_value_in);
+  g_assert(status == NC_NOERR);
   
   // Here output grid params
   int ncout;
   status = nc_create("./out.nc", NC_NETCDF4, &ncout);
-  double lon0 = 1, lon1 = 20, dlon = 0.02, lon;
-  double lat0 = 1, lat1 = 20, dlat = 0.02, lat;
+  g_assert(status == NC_NOERR);
+  double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;
+  double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;
   short fill_value = -32767;
 
 
   int nlat_out=0, nlon_out=0;
-  for ( lat = lat0; lat+dlat < lat1; lat+=dlat )
+  for ( lat = lat0; lat+dlat < lat1; lat+=dlat ){
     nlat_out++;
+    //    fprintf(stderr, "%i %f\n", nlat_out, lat);
+  }
   for ( lon = lon0; lon+dlon < lon1; lon+=dlon )
     nlon_out++;
   double lats_out[nlat_out];
-  double lons_out[nlat_out];
+  double lons_out[nlon_out];
   i = 0;
-  for ( lat = lat0; lat+dlat < lat1; lat+=dlat )
+  for ( lat = lat0; lat+dlat < lat1; lat+=dlat ){
     lats_out[i++] = lat;
+    //    fprintf(stderr, "%i %f\n", i, lat);
+  }
   i = 0;
   for ( lon = lon0; lon+dlon < lon1; lon+=dlon )
     lons_out[i++] = lon;
   
-  
+  //fprintf(stderr, "%i %i\n",nlon_out, nlat_out);
   int latdimid_out, londimid_out, latvarid_out, lonvarid_out, zvarid_out;
-  nc_def_dim (ncout, "lat", nlat_out, &latdimid_out);
-  nc_def_dim (ncout, "lon", nlon_out, &londimid_out);
-
+  status = nc_def_dim (ncout, "lat", nlat_out, &latdimid_out);
+  g_assert(status == NC_NOERR);
+  status = nc_def_dim (ncout, "lon", nlon_out, &londimid_out);
+  g_assert(status == NC_NOERR);
   dimids[0] = latdimid_out;
-  nc_def_var (ncout, "lat", NC_FLOAT, 1, dimids, &latvarid_out);
+  status = nc_def_var (ncout, "lat", NC_FLOAT, 1, dimids, &latvarid_out);
+  g_assert(status == NC_NOERR);
   dimids[0] = londimid_out;
-  nc_def_var (ncout, "lon", NC_FLOAT, 1, dimids, &lonvarid_out);
+  status = nc_def_var (ncout, "lon", NC_FLOAT, 1, dimids, &lonvarid_out);
+  g_assert(status == NC_NOERR);
   dimids[0] = latdimid_out;
   dimids[1] = londimid_out;
-  nc_def_var (ncout, "z", NC_SHORT, 2, dimids, &zvarid_out);
-
+  status = nc_def_var (ncout, "z", NC_SHORT, 2, dimids, &zvarid_out);
+  g_assert(status == NC_NOERR);
+  
   status = nc_put_att_short (ncout, zvarid_out, "_FillValue", NC_SHORT,
 			     1, &fill_value);
-
-  nc_put_var_double (ncout, latvarid_out, lats_out);
-  nc_put_var_double (ncout, lonvarid_out, lons_out);
+  g_assert(status == NC_NOERR);
+  status = nc_enddef(ncout);
+  g_assert(status == NC_NOERR);
   
+  status = nc_put_var_double (ncout, latvarid_out, lats_out);
+  g_assert(status == NC_NOERR);
+  status = nc_put_var_double (ncout, lonvarid_out, lons_out);
+  g_assert(status == NC_NOERR);
+  
+  //return 1;
   //dimids[0] = 
   //status = nc_def_var (*ncid, "lon", NC_FLOAT, 1, dimids, &var->id);
   
@@ -141,7 +158,11 @@ int main()
       //fprintf(stderr, "%f %i\n",*(lats_in+ilat), i);
     }
   }
-  
+
+
+  //  for ( ilon = 0; ilon < nlon_out; ilon++ )
+  //  fprintf(stderr, "%i\n", countlon[ilon]);
+  //return 1;
   
   size_t start[2];
   size_t count[2];
