@@ -21,14 +21,14 @@ import matplotlib.pyplot as plt
 from SMCPy import SMCGrid as smc
 
 # -- 1. important parms
-debug = 1
+debug = 0
 genGrid = 1
-matFnm = 'out/glb1d.mat'
+matFnm = 'glb025-3.nc'
 proj=ccrs.Robinson(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
 # -- 2. gen grid
-glbBathy = smc.MatBathy(matFnm, debug=debug)
+glbBathy = smc.NCBathy(matFnm, debug=debug)
 if genGrid:
     smc.GenSMCGrid(bathy_obj=glbBathy, gen_cell_sides=True, debug=debug)
 

@@ -28,9 +28,10 @@ proj=ccrs.Robinson(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
 # -- 2. gen grid
-glbBathy = smc.MatBathy(matFnm, debug=debug)
+# glbBathy = smc.MatBathy(matFnm, debug=debug)
+glbBathy = smc.NCBathy('NZ.nc', debug=debug)
 if genGrid:
-    smc.GenSMCGrid(bathy_obj=glbBathy, depth_threshold=150, debug=debug, gen_cell_sides=False)
+    smc.GenSMCGrid(bathy_obj=glbBathy, debug=debug, gen_cell_sides=True, refining_depth=0)
     # smc.GenSMCGrid(bathy_obj=glbBathy, debug=debug, gen_cell_sides=True)
 
 # -- 3. Create Grid from file and plot the cells

@@ -23,20 +23,20 @@ from SMCPy import SMCGrid as smc
 # -- 1. important parms
 debug = 0
 genGrid = 1
-matFnm = 'out/glb1d.mat'
+matFnm = 'glb05-3.nc'
 proj=ccrs.Robinson(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
 # -- 2. gen grid
-glbBathy = smc.MatBathy(matFnm, debug=debug)
+glbBathy = smc.NCBathy(matFnm, debug=debug)
 if genGrid:
     smc.GenSMCGrid(bathy_obj=glbBathy, gen_cell_sides=True, debug=debug)
 
 exit
 
 # -- 3. Create Grid from file and plot the cells
-smcFnm = 'GLB1DCell.dat'
-obsFnm = 'GLB1DObs.dat'
+smcFnm = 'glb05-3Cell.dat'
+obsFnm = 'glb05-3Obs.dat'
 glbSMC = smc.UnSMC(smcFnm, dlon=glbBathy.dlon, dlat=glbBathy.dlat,
                    refp=(glbBathy.zlon, glbBathy.zlat))#, proj=proj)
 glbSMC.readObs(obsFnm)

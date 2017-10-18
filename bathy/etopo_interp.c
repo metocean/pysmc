@@ -18,7 +18,7 @@ int main()
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
   char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc";
-  char fnmout[50] = "out.nc";
+  char fnmout[50] = "../examples/nz/NZ.nc";
 
   // Here input file
   printf("-- Opening parent bathy %s \n\n", fnmin);
@@ -59,10 +59,10 @@ int main()
   int ncout;
   status = nc_create(fnmout, NC_NETCDF4, &ncout);
   g_assert(status == NC_NOERR);
-  /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
-  /*double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;*/
-  double lon0 = 0, lon1 = 360, dlon = 1.0, lon;
-  double lat0 = -75, lat1 = 75, dlat = 1.0, lat;
+  /*double lon0 = 0, lon1 = 360, dlon = 0.125, lon;*/
+  /*double lat0 = -75, lat1 = 75, dlat = 0.125, lat;*/
+  double lon0 = 155, lon1 = 180, dlon = 0.25, lon;
+  double lat0 = -55, lat1 = -30, dlat = 0.25, lat;
   short fill_value = -32767;
 
   // Check max grid extent
