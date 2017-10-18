@@ -72,6 +72,7 @@ from tqdm import tqdm
 import logging
 import cmocean
 import cPickle
+import xarray as xr
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -188,7 +189,7 @@ class MatBathy(object):
         self.ww3_grid['YE'] = self.ww3_grid['Y1'] + (self.ww3_grid['NY']-1) * (
                               self.dlat*4)
 
-class PyBathy(object):
+class PyBathy(MatBathy):
 
     def load_file(self):
         """ load in pickle file """
@@ -199,6 +200,25 @@ class PyBathy(object):
         for key in keys:
             setattr(self, key, matDict[key])
         del keys, matDict
+
+class NCBathy(MatBathy):
+
+    def load_file(self):
+        """ load in mat file """
+        self.gid = os.path.basename(self.fnm)[:-3]
+        data = xr.open_dataset(self.fnm)
+        self.depth = data.z.sel(y=slice(-75,75))[:,:]
+        self.lon = data.x[:] % 360.
+        self.lat = data.y.sel(y=slice(-75,75))[:]
+        self.m3 = np.ones_like(self.depth)
+        self.m4 = np.ones_like(self.depth)
+        self.mask_map = np.ones_like(self.depth)
+        self.sx1 = np.zeros_like(self.depth)
+        self.sy1 = np.zeros_like(self.depth)
+        self.dlon = self.lon[1] - self.lon[0]
+        self.dlat = self.lat[1] - self.lat[0]
+        __import__('ipdb').set_trace()
+        del data
 
 
 ###############################################################

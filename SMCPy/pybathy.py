@@ -24,7 +24,7 @@ class PyBathy(PyGridgen):
         self.generate_grid(bathy='/source/gridgen/noaa/reference_data/etopo1.nc')
         self.generate_pickle()
 
-def create_grid(gid,latmin,latmax,lonmin,lonmax,dlat,dlon):
-    pybath = PyBathy(latmin, latmax, lonmin, lonmax, dlat, dlon,
-                     output=gid+'.pkl')
+def create_grid(gid,lonmin,lonmax,latmin,latmax, dlat,dlon, greedy=False):
+    pybath = PyBathy(lonmin, lonmax, latmin, latmax, dlat, dlon,
+                     output=gid+'.pkl', greedy=False)
     pybath.run()
