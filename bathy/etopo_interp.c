@@ -6,6 +6,28 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b)) 
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
 
+print_progress(size_t count, size_t max)
+{
+	const char prefix[] = "Progress: [";
+	const char suffix[] = "]";
+	const size_t prefix_length = sizeof(prefix) - 1;
+	const size_t suffix_length = sizeof(suffix) - 1;
+	char *buffer = calloc(max + prefix_length + suffix_length + 1, 1); // +1 for \0
+	size_t i = 0;
+
+	strcpy(buffer, prefix);
+	for (; i < max; ++i)
+	{
+		buffer[prefix_length + i] = i < count ? '#' : ' ';
+	}
+
+	strcpy(&buffer[prefix_length + i], suffix);
+	printf("\b%c[2K\r%s\n", 27, buffer);
+	fflush(stdout);
+	free(buffer);
+}
+
+
 int main()
 {
   int i, j;
@@ -221,6 +243,8 @@ int main()
 	sum = fill_value;
       else
 	sum /= num;
+
+      print_progress(ilat, nlat_out);
 
       status = nc_put_var1_double(ncout, zvarid_out, index,
 				    &sum);
