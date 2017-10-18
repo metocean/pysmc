@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define max(a, b) (((a) > (b)) ? (a) : (b)) 
+#define min(a, b) (((a) < (b)) ? (a) : (b)) 
+
 int main()
 {
   int i, j;
@@ -62,23 +65,25 @@ int main()
   double lat0 = -75, lat1 = 75, dlat = 1.0, lat;
   short fill_value = -32767;
 
+  // Check max grid extent
+  lon1 = min(360-dlon, lon1);
 
   int nlat_out=0, nlon_out=0;
-  for ( lat = lat0; lat+dlat < lat1; lat+=dlat ){
+  for ( lat = lat0; lat+dlat <= lat1+dlat; lat+=dlat ){
     nlat_out++;
     //    fprintf(stderr, "%i %f\n", nlat_out, lat);
   }
-  for ( lon = lon0; lon+dlon < lon1; lon+=dlon )
+  for ( lon = lon0; lon+dlon <= lon1+dlon; lon+=dlon )
     nlon_out++;
   double lats_out[nlat_out];
   double lons_out[nlon_out];
   i = 0;
-  for ( lat = lat0; lat+dlat < lat1; lat+=dlat ){
+  for ( lat = lat0; lat+dlat <= lat1+dlat; lat+=dlat ){
     lats_out[i++] = lat;
     //    fprintf(stderr, "%i %f\n", i, lat);
   }
   i = 0;
-  for ( lon = lon0; lon+dlon < lon1; lon+=dlon )
+  for ( lon = lon0; lon+dlon <= lon1+dlon; lon+=dlon )
     lons_out[i++] = lon;
   
   //fprintf(stderr, "%i %i\n",nlon_out, nlat_out);
