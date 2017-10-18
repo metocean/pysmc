@@ -14,9 +14,12 @@ int main()
   nc_type type;
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
+  char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc";
+  char fnmout[50] = "out.nc";
 
   // Here input file
-  status = nc_open("./etopo1.nc",
+  printf("-- Opening parent bathy %s \n\n", fnmin);
+  status = nc_open(fnmin,
 		   NC_NOWRITE, &ncid);
   g_assert(status == NC_NOERR);
   
@@ -51,10 +54,12 @@ int main()
   
   // Here output grid params
   int ncout;
-  status = nc_create("./out.nc", NC_NETCDF4, &ncout);
+  status = nc_create(fnmout, NC_NETCDF4, &ncout);
   g_assert(status == NC_NOERR);
-  double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;
-  double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;
+  /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
+  /*double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;*/
+  double lon0 = 0, lon1 = 360, dlon = 1.0, lon;
+  double lat0 = -75, lat1 = 75, dlat = 1.0, lat;
   short fill_value = -32767;
 
 
@@ -163,6 +168,9 @@ int main()
   //  for ( ilon = 0; ilon < nlon_out; ilon++ )
   //  fprintf(stderr, "%i\n", countlon[ilon]);
   //return 1;
+
+  printf("-- looping through cells\n\n");
+
   
   size_t start[2];
   size_t count[2];
@@ -198,7 +206,7 @@ int main()
       for ( i = 0; i < count[0]; i++ ) {
 	for ( j = 0; j < count[1]; j++ ) {
 	  /* Here criteria to change */
-	  if ( data[i][j] > 0 && data[i][j] != fill_value_in ) {
+	  if ( data[i][j] < 0 && data[i][j] != fill_value_in ) {
 	    sum += data[i][j];
 	    num++;
 	  }
@@ -209,9 +217,6 @@ int main()
       else
 	sum /= num;
 
-      
-      
-      
       status = nc_put_var1_double(ncout, zvarid_out, index,
 				    &sum);
       g_assert(status == NC_NOERR);
@@ -220,6 +225,9 @@ int main()
   
   nc_close(ncout);
   nc_close(ncid);
+
+  printf("-- Closed output %s \n\n", fnmout);
+  printf("-- Finished successfully", fnmout);
 
   free(lons_in);
   free(lats_in);
