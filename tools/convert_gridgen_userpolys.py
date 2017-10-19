@@ -13,5 +13,5 @@ matDict = sio.loadmat('/source/gridgen/noaa/reference_data/optional_coastal_poly
 recs = pd.DataFrame.from_records(matDict['user_bound'])
 for item in  recs.iterrows():
     output = np.array([item[1].x, item[1].y]).transpose()
-    np.savetxt(os.path.join(outdir, "user_polygon-%s.txt" % item[1].name),
+    np.savetxt(os.path.join(outdir, "user_polygon-%s.txt" % str(int(item[1].name)+1)),
                output)
