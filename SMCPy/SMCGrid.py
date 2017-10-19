@@ -207,17 +207,16 @@ class NCBathy(MatBathy):
         """ load in mat file """
         self.gid = os.path.basename(self.fnm)[:-3]
         data = xr.open_dataset(self.fnm)
-        self.depth = data.z.sel(y=slice(-75,75))[:,:]
-        self.lon = data.x[:] % 360.
-        self.lat = data.y.sel(y=slice(-75,75))[:]
+        self.depth = data.z.values
+        self.lon, self.lat = np.meshgrid(data.lon.values % 360.,
+                                         data.lat.values)
         self.m3 = np.ones_like(self.depth)
         self.m4 = np.ones_like(self.depth)
         self.mask_map = np.ones_like(self.depth)
         self.sx1 = np.zeros_like(self.depth)
         self.sy1 = np.zeros_like(self.depth)
-        self.dlon = self.lon[1] - self.lon[0]
-        self.dlat = self.lat[1] - self.lat[0]
-        __import__('ipdb').set_trace()
+        self.dlon = data.lon[1].values - data.lon[0].values
+        self.dlat = data.lat[1].values - data.lat[0].values
         del data
 
 
@@ -322,7 +321,7 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 ###############################################################
 # -- GenSMCGrid fuction
 def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
-        size4_bbox=None, debug=True, land_value=1., ncel_thrd=1000000,
+        size4_bbox=None, debug=True, land_value=1., ncel_thrd=10000000,
         buoy_list=None, arctic=False, gen_cell_sides=True,
         refining_depth=-250.):
     """
@@ -530,7 +529,12 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     # -- [Note: python is 0-based and the end point of arange function is
     # --  excluded]
     if bathy_obj.globe:
-        jrow_beg, jrow_end = 4, -4 # the first four rows are Antartic land
+        # jrow_beg, jrow_end = 4, -4 # the first four rows are Antartic land
+                                   # # so we can exclude it
+                                   # #
+        # TD - Above was failing for global grids - need to look at it.
+        # Changing to 8 works for now
+        jrow_beg, jrow_end = 8, -8 # the first four rows are Antartic land
                                    # so we can exclude it
         icol_beg, icol_end = 0, -4
     else: # smc less than the normal grid
