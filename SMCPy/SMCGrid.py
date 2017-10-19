@@ -82,6 +82,8 @@ from matplotlib.path import Path # Path is much faster than Shapely
 from matplotlib.collections import PolyCollection, PatchCollection
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+import SMCPy
+
 #import sys; sys.path.append(r'/media/qliu/Zuoer_dream/mylib')
 #from pyutil.colors import gen_cmap, ct10
 from colors import gen_cmap, ct10
@@ -323,7 +325,7 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         size4_bbox=None, debug=True, land_value=1., ncel_thrd=10000000,
         buoy_list=None, arctic=False, gen_cell_sides=True,
-        refining_depth=-250.):
+        refining_depth=-250., exclude_flags=None):
     """
     Generate SMC 3 level grids.
 
@@ -472,6 +474,16 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
 
     # -- kwds of FindLevelLoc
     fll_kwds = dict(lon1d=bathy_obj.lon, lat1d=bathy_obj.lat)
+
+    if exclude_flags is not None:
+        user_polys = np.loadtxt(exclude_flags, usecols=(0,1))
+        fnumbers = user_polys[:,0][user_polys[:,1]==1]
+        for f in fnumbers:
+            p = np.loadtxt(os.path.join(os.path.dirname(SMCPy.__file__),
+                                    "user_polygons/user_polygon-%s.txt" % int(f)))
+            print("Removing polygon %s" % int(f))
+            loc = FindLevelLoc(p, **fll_kwds)
+            lp_map[loc] = -1 # exclude points inside polygon
 
     # -- size 4
     if size4_bbox is not None:
