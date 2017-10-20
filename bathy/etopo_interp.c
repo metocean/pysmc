@@ -1,3 +1,7 @@
+
+/*Interpolate etopo bathymetry to a coarser grid. */
+/*Uses the same mehod as gridgen matlab coade*/
+
 #include <glib.h>
 #include <netcdf.h>
 #include <stdio.h>
@@ -5,27 +9,6 @@
 
 #define max(a, b) (((a) > (b)) ? (a) : (b)) 
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
-
-print_progress(size_t count, size_t max)
-{
-	const char prefix[] = "Progress: [";
-	const char suffix[] = "]";
-	const size_t prefix_length = sizeof(prefix) - 1;
-	const size_t suffix_length = sizeof(suffix) - 1;
-	char *buffer = calloc(max + prefix_length + suffix_length + 1, 1); // +1 for \0
-	size_t i = 0;
-
-	strcpy(buffer, prefix);
-	for (; i < max; ++i)
-	{
-		buffer[prefix_length + i] = i < count ? '#' : ' ';
-	}
-
-	strcpy(&buffer[prefix_length + i], suffix);
-	printf("\b%c[2K\r%s\n", 27, buffer);
-	fflush(stdout);
-	free(buffer);
-}
 
 
 int main()
@@ -43,7 +26,7 @@ int main()
   char fnmout[50] = "../examples/nz/NZ.nc";
 
   // Here input file
-  printf("-- Opening parent bathy %s \n\n", fnmin);
+  printf("-- Opening parent bathy %s \n", fnmin);
   status = nc_open(fnmin,
 		   NC_NOWRITE, &ncid);
   g_assert(status == NC_NOERR);
@@ -196,7 +179,7 @@ int main()
   //  fprintf(stderr, "%i\n", countlon[ilon]);
   //return 1;
 
-  printf("-- looping through cells\n\n");
+  printf("-- looping through cells\n");
 
   
   size_t start[2];
@@ -244,7 +227,9 @@ int main()
       else
 	sum /= num;
 
-      print_progress(ilat, nlat_out);
+      if ( ilon == 0 && (((int)(100*ilat/nlat_out) % 10) == 0) ) {
+            printf("---- Processed %i of %i rows... \n", ilat, nlat_out);
+      }
 
       status = nc_put_var1_double(ncout, zvarid_out, index,
 				    &sum);
@@ -255,7 +240,7 @@ int main()
   nc_close(ncout);
   nc_close(ncid);
 
-  printf("-- Closed output %s \n\n", fnmout);
+  printf("-- Closed output %s \n", fnmout);
   printf("-- Finished successfully", fnmout);
 
   free(lons_in);
