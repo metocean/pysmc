@@ -8,6 +8,11 @@ Date  : Thu Aug 20 2015 [Generate bathy array from etopo file]
 Mod   : Sat Oct 17 2015 [Generate bathy/obst from ww3 gridgen Matlab package]
 Mod   : add a `buoy_list` argument to the GenSMCGrid function.
 Mod   : Sun Jan 24 2016 [Global SMC grid]
+Mod   : Tom Durrant -  Oct 2017 Added refining based on depth
+Mod   : Tom DUrrant -  Oct 2017 Added face array generation methods baesd no
+                       Jian-Gou's fortran code
+Mod   : Tom DUrrant -  Added exclusions based on user supplied polygons
+                       (similar to grigen)
 
 Note:
 1) WW3 traditional lon-lat grid: grid/node registered
@@ -212,6 +217,10 @@ class NCBathy(MatBathy):
         self.depth = data.z.values
         self.lon, self.lat = np.meshgrid(data.lon.values % 360.,
                                          data.lat.values)
+        # m3 and m4 are just placeholders for now. There are used to remove
+        # lakes and small bodies of water. This can be done here using exlude
+        # polygons, but might be worth considering implementing this in gridgen
+        # way at some point
         self.m3 = np.ones_like(self.depth)
         self.m4 = np.ones_like(self.depth)
         self.mask_map = np.ones_like(self.depth)
@@ -741,6 +750,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     header = fmt[:-1].format(NL, 2)
     np.savetxt(bathy_obj.gid.upper()+'Obs.dat', smcCell[:, 5:], fmt='%10d',
                header=header, comments='')
+
 
     # -- write the meta data to a readme file
     with open(bathy_obj.gid.upper()+'.Info', 'w') as f:
