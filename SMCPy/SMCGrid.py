@@ -670,7 +670,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
                             # 1) 4ism cells have land points
                             # 2) all 4ism are sea points but lp<=2
                             # -- size 1 cells
-                            if ((jrow_latc >= 0 and (jrow+j2) < jparmg[loc_parmg
+                            if ((jrow_latc >= 0 and (jrow+j2) <= jparmg[loc_parmg
                                 +1]-2) or (jrow_latc < 0 and (jrow+j2) >=
                                 jparmg[loc_parmg]+2)) and (
                                 lp_map[jrow+j2, icol+i2] > 0):
