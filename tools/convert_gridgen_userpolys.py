@@ -1,3 +1,11 @@
+"""
+Small script to convert the user polygons shipped with gridgen into text files.
+These are used to used to mask out given bodies of water from the grid based on
+a flag file. A similar functionality is implemented here in SMCPy. The files
+produced here are in the repository, this script is just left here in case
+these polygons are updated or added to future gridgen releases
+"""
+
 import scipy.io as sio
 import pandas as pd
 import numpy as np
