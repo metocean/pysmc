@@ -44,4 +44,10 @@ Contributors::
     Qingxiang Liu (University of Melbourne)
 
 
+
+Example
+--------
+
+Simple example showing a 1 deg NZ grid refining down to 0.25 based on a depth of 250m
+
 .. image:: examples/nz/NZCell.png
