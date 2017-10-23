@@ -42,3 +42,6 @@ Contributors::
     Chris Bunny (UKMO)
     Andy Saulter Bunny (UKMO)
     Qingxiang Liu (University of Melbourne)
+
+
+.. image:: examples/nz/NZCell.png
