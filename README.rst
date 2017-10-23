@@ -35,6 +35,14 @@ Standard pip install from there, or developer install as follows::
 
     pip install --user -e .
 
+
+Example
+--------
+
+Simple example showing a 1 deg NZ grid refining down to 0.25 based on a depth of 250m
+
+.. image:: examples/nz/NZCell.png
+
 Contributors::
 
     Tom Durrant (MetOcean)
@@ -44,10 +52,3 @@ Contributors::
     Qingxiang Liu (University of Melbourne)
 
 
-
-Example
---------
-
-Simple example showing a 1 deg NZ grid refining down to 0.25 based on a depth of 250m
-
-.. image:: examples/nz/NZCell.png
