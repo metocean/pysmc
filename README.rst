@@ -19,7 +19,7 @@ Other bits and pieces::
     smc            - Python code for generating plots from smc flat output files
     idl            - IDL scripts for producing SMC grids
     bathy          - C code to produce bathymetry
-    ww3_src        - Alterations to ww3 code (TODO)
+    ww3_src        - Alterations to ww3 code 
 
 
 Install
@@ -35,20 +35,23 @@ Standard pip install from there, or developer install as follows::
 
     pip install --user -e .
 
-
 Example
 --------
 
-Simple example showing a 1 deg NZ grid refining down to 0.25 based on a depth of 250m
+A simple example can be found in examples/nz/,  consisting of a 1 deg base NZ grid refining down to 0.25 based on a refining depth of 250m. 
+
+Base bathymetry was generated from NOAA gridgen code, and is included here so does not need to be produced, however, if you have gridgen installed, it can be replicated by running the script
+
+    python run_gridgen.py
+
+Note that you may need change the paths in SMCPy/matlab/create_grid_smcbase.m to point to the gridgen routines.
+
+
+The SMC cell file and face arrays can then be produced by running
+
+    python create_smc.py
+
+This will produce the following SMC grid. 
 
 .. image:: examples/nz/NZCell.png
-
-Contributors::
-
-    Tom Durrant (MetOcean)
-    Jian-Guo (UKMO)
-    Chris Bunny (UKMO)
-    Andy Saulter Bunny (UKMO)
-    Qingxiang Liu (University of Melbourne)
-
 
