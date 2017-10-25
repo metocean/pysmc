@@ -23,7 +23,7 @@ from SMCPy import SMCGrid as smc
 # -- 1. important parms
 debug = 1
 genGrid = 1
-matFnm = 'out/nz.mat'
+matFnm = 'nz.mat'
 proj=ccrs.Robinson(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
