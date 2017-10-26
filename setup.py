@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+smc      : python library for plotting and manipulating smc grids
+"""
+
 from numpy.distutils.core import setup
 
 def ext_configuration(parent_package='',top_path=None):
