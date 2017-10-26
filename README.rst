@@ -56,7 +56,12 @@ The SMC cell file and face arrays can then be produced by running
 
     python create_smc.py
 
-This will produce the following SMC grid. 
+This will produce the following SMC grid cell, obstruction and face array files for the grid shown::
+
+    NZCell.dat
+    NZObs.dat
+    NZISide.dat
+    NZJSide.dat
 
 .. image:: examples/nz/NZCell.png
 
