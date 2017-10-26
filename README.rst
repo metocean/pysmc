@@ -25,12 +25,11 @@ Other bits and pieces::
 Install
 --------
 
-Generate python modules from fortran code (required f2py)::
+Generate python modules from fortran code (requires f2py)::
 
     cd SMCPY/fortran
     ./generate_fpys.sh
     cd ../..
-
 
 
 Standard pip install from there, or developer install as follows::
