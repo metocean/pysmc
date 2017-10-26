@@ -31,9 +31,14 @@ Generate python modules from fortran code (required f2py)::
     ./generate_fpys.sh
     cd ../..
 
+
+
 Standard pip install from there, or developer install as follows::
 
+    pip install --user -r requirements.txt
     pip install --user -e .
+
+User install is recommended so as not to interfere with the system python install, but things can of course be installed however you want. 
 
 Example
 --------
