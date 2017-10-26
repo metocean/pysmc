@@ -44,14 +44,14 @@ Example
 
 A simple example can be found in examples/nz/,  consisting of a 1 deg base NZ grid refining down to 0.25 based on a refining depth of 250m. 
 
-Base bathymetry was generated from NOAA gridgen code, and is included here so does not need to be produced, however, if you have gridgen installed, it can be replicated by running the script
+Base bathymetry was generated from NOAA gridgen code, and is included here so does not need to be produced, however, if you have gridgen installed, it can be replicated by running the script::
 
     python run_gridgen.py
 
 Note that you may need change the paths in SMCPy/matlab/create_grid_smcbase.m to point to the gridgen routines.
 
 
-The SMC cell file and face arrays can then be produced by running
+The SMC cell file and face arrays can then be produced by running::
 
     python create_smc.py
 
