@@ -101,7 +101,7 @@ class DockerRun(object):
                         },
                  logger=log,
                  **kwargs):
-        self.headclient = docker.DockerClient(base_url='tcp://%s:2375' % headip)
+        self.headclient = docker.DockerClient(base_url='unix://var/run/docker.sock')
         self.dopts = dopts
         self.cmd = cmd
         self.logger=logger
