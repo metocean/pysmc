@@ -85,6 +85,7 @@ MODULE GenCellSide
 !  Call subroutines to generate flux faces
 
    CALL CellSide(gridid)
+   CALL CellSide
 !     Open files to store writups
    OPEN(UNIT=16,FILE=trim(gridid)//'SMCSide.txt',STATUS='UNKNOWN',IOSTAT=nn,ACTION='WRITE')
    IF(nn /= 0) PRINT*,' File messgs.txt was not opened! '
