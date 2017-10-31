@@ -26,7 +26,7 @@ MODULE GenCellSide
    IMPLICIT NONE
 
 ! Parameters fixed in the program
-   INTEGER,PARAMETER::NCL=1250000, NFC=1360000
+   INTEGER,PARAMETER::NCL=2250000, NFC=2360000
 
 
 ! Array variables to be used for data storage
