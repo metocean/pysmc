@@ -1,13 +1,11 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-GOMSMCGrid.py
+# File              : create_smc.py
+# Author            : Tom Durrant <t.durrant@metocean.co.nz>
+# Date              : 02.11.2017
+# Last Modified Date: 02.11.2017
+# Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 
-Author: Tom Durrant
-Date  : Thu Oct 15 11:59:20 2015
-Mod   : Sun Jan 24 2016 [global grid]
-
-Create the SMC2510km grid for Gulf of Mexico (GOM).
-"""
 
 # -- m. module
 import numpy as np
@@ -23,14 +21,15 @@ from SMCPy import SMCGrid as smc
 # -- 1. important parms
 debug = 0
 genGrid = 1
+gen_cell_sides = 0
 matFnm = 'glb2d.nc'
-proj=ccrs.Robinson(central_longitude=180.)
+proj=ccrs.PlateCarree(central_longitude=180.)
 #proj=ccrs.Robinson(central_longitude=0.)
 
 # -- 2. gen grid
 glbBathy = smc.NCBathy(matFnm, debug=debug)
 if genGrid:
-    smc.GenSMCGrid(bathy_obj=glbBathy, gen_cell_sides=False, debug=debug)
+    smc.GenSMCGrid(bathy_obj=glbBathy, gen_cell_sides=gen_cell_sides, debug=debug)
 
 exit
 
