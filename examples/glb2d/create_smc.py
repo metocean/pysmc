@@ -3,7 +3,7 @@
 # File              : create_smc.py
 # Author            : Tom Durrant <t.durrant@metocean.co.nz>
 # Date              : 02.11.2017
-# Last Modified Date: 02.11.2017
+# Last Modified Date: 03.11.2017
 # Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 
 
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from SMCPy import SMCGrid as smc
 
 # -- 1. important parms
-debug = 0
+debug = 1
 genGrid = 1
 gen_cell_sides = 0
 matFnm = 'glb2d.nc'
