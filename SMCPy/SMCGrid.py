@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# File              : SMCGrid.py
+# Author            : Tom Durrant <t.durrant@metocean.co.nz>
+# Date              : 04.11.2017
+# Last Modified Date: 04.11.2017
+# Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 # -*- coding: utf-8 -*-
 """
 SMCGridGen.py
@@ -561,7 +568,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
                                    # so we can exclude it
         icol_beg, icol_end = 0, -4
     else: # smc less than the normal grid
-        # TODO - Why are these like this? Followup with Quixyang
+        # TODO - Why are these like this? Followup with Qingxiang
         # jrow_beg, jrow_end = 4, -16
         # icol_beg, icol_end = 4, -8
         jrow_beg, jrow_end = 4, -16
