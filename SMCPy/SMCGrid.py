@@ -3,7 +3,7 @@
 # File              : SMCGrid.py
 # Author            : Tom Durrant <t.durrant@metocean.co.nz>
 # Date              : 03.11.2017
-# Last Modified Date: 04.11.2017
+# Last Modified Date: 07.11.2017
 # Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 # -*- coding: utf-8 -*-
 """
@@ -564,7 +564,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
                                    # #
         # TD - Above was failing for global grids - need to look at it.
         # Changing to 8 works for now
-        jrow_beg, jrow_end = 8, -8 # the first four rows are Antartic land
+        jrow_beg, jrow_end = 4, -8 # the first four rows are Antartic land
                                    # so we can exclude it
         icol_beg, icol_end = 0, -4
     else: # smc less than the normal grid
@@ -581,12 +581,21 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     if debug:
         print '**** [SMCGrid] Creating Grid ****'
 
+    # Initialise smc bounds
+    smc_latmin = 999
+    smc_lonmin = 999
+    smc_latmax = -999
+    smc_lonmax = -999
+
     for jrow in tqdm(np.arange(jrow_beg, bathy_obj.nrow + jrow_end, 4)):
         loc_parmg = np.digitize([jrow,], jparmg)[0] - 1
         ism = 2 ** np.abs(7-loc_parmg)
 
         jcel = j0 + jrow # Important element: jcel
         jrow_latc = bathy_obj.flat + jrow * bathy_obj.dlat # center latitude
+        jrow_latsmc = bathy_obj.flat + jrow * bathy_obj.dlat - bathy_obj.dlat/2 # sw corner
+        smc_latmin = min(smc_latmin, jrow_latsmc)
+        smc_latmax = max(smc_latmax, jrow_latsmc)
 
         if debug:
             print '---- lat, jrow, jcel, ism:', jrow_latc, jrow, jcel, ism
@@ -607,6 +616,11 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
             neigh_cells = bathy_obj.depth[np.ix_(jneigh, ineigh)]
             sea_cells = neigh_cells[np.where(neigh_cells<refining_depth)]
             count_sea = sea_cells.size
+            icol_smc = bathy_obj.flon + icol * bathy_obj.dlon - bathy_obj.dlon/2 # sw corner
+            if bathy_obj.globe:
+                icol_smc %= 360
+            smc_lonmin = min(smc_lonmin, icol_smc)
+            smc_lonmax = max(smc_lonmax, icol_smc)
 
             if np.equal(count_sea, 8*ism*8) and (lp_map[jrow, icol] >= 4):
                 jneigh = jrow + np.arange(0, 4)
@@ -770,6 +784,12 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         print >>f, '**** SMC ****'
         print >>f, 'reference point:', refp
         print >>f, 'i0, j0:', i0, j0
+        print >>f
+        print >>f, '**** [WW3 Grid Inp - Reduced Grid] ****'
+        print >>f, 'DX, DY:', bathy_obj.ww3_grid['DX'], bathy_obj.ww3_grid['DY']
+        print >>f, 'X1, Y1:', smc_lonmin, smc_latmin
+        print >>f, 'NX, NY:', (smc_lonmax - smc_lonmin) / bathy_obj.ww3_grid['DX'], (smc_latmax - smc_latmin) / bathy_obj.ww3_grid['DY']
+        print >>f, 'XE, YE:', smc_lonmax, smc_latmax
 
     if gen_cell_sides:
         genCellSides(bathy_obj.gid.upper(),
