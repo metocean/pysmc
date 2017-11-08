@@ -1,7 +1,7 @@
 SMC Python Tools
 ================
 
-This repository contains tools to generate and work with Spherical-Multi-Cell
+This repository contains tools to generate and work with Spherical Multiple-Cell
 (SMC) grids for WAVEWATCH III.  Code is based in large part from existing bits
 and pieces that have been cobbled together into a common library and modified.
 Tools provided here are very much a work in progress, and are in various stages
