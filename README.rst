@@ -1,7 +1,7 @@
 SMC Python Tools
 ================
 
-This repository contains tools to generate and work with Spherical-Multi-Cell
+This repository contains tools to generate and work with Spherical Multiple-Cell
 (SMC) grids for WAVEWATCH III.  Code is based in large part from existing bits
 and pieces that have been cobbled together into a common library and modified.
 Tools provided here are very much a work in progress, and are in various stages
@@ -20,6 +20,7 @@ Other bits and pieces::
     idl            - IDL scripts for producing SMC grids
     bathy          - C code to produce bathymetry
     ww3_src        - Alterations to ww3 code 
+    docs           - Project documentation (sparse at present)
 
 
 Install
@@ -63,4 +64,16 @@ This will produce the following SMC grid cell, obstruction and face array files 
     NZJSide.dat
 
 .. image:: examples/nz/NZCell.png
+
+
+Documentation
+-------------
+
+This project is currently not well documented. At the moment, the docs folder consists of Jian-Guo Li's original SMC documentation. These describe the SMC grids themselves as implemented in WAVEWATCH III, and grid generation using the idl programs included in the idl directory. These are in pdf format, and are included here as git-lfs files (see https://git-lfs.github.com/ for use).
+
+Contributions
+--------------
+
+The code contained in the repository is available to the community. Any contributions are welcome. Please feel free to fork this project and create pull requests, or contact Tom Durrant (t.durrant@metocean.co.nz).
+
 
