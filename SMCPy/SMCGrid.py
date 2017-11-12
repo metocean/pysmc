@@ -788,7 +788,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         print >>f, '**** [WW3 Grid Inp - Reduced Grid] ****'
         print >>f, 'DX, DY:', bathy_obj.ww3_grid['DX'], bathy_obj.ww3_grid['DY']
         print >>f, 'X1, Y1:', smc_lonmin, smc_latmin
-        print >>f, 'NX, NY:', (smc_lonmax - smc_lonmin) / bathy_obj.ww3_grid['DX'], (smc_latmax - smc_latmin) / bathy_obj.ww3_grid['DY']
+        print >>f, 'NX, NY:', (smc_lonmax - smc_lonmin) / bathy_obj.ww3_grid['DX'] + 1, (smc_latmax - smc_latmin) / bathy_obj.ww3_grid['DY'] + 1
         print >>f, 'XE, YE:', smc_lonmax, smc_latmax
 
     if gen_cell_sides:
