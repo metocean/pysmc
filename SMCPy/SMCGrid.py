@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # File              : SMCGrid.py
-# Author            : Tom Durrant <t.durrant@metocean.co.nz>
-# Date              : 03.11.2017
+# Author            : Qingxiang Liu
+# Date              : 03.17.2015
 # Last Modified Date: 07.11.2017
 # Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 # -*- coding: utf-8 -*-
+
 """
 SMCGridGen.py
 
@@ -101,6 +102,14 @@ import SMCPy
 from colors import gen_cmap, ct10
 proj = ccrs.Robinson(central_longitude=180.)
 
+
+# Set grid extents for global and regional grids
+glob_icol_beg, glob_icol_end = 0, -4
+glob_jrow_beg, glob_jrow_end = 4, -8
+reg_icol_beg, reg_icol_end = 2, -6
+reg_jrow_beg, reg_jrow_end = 2, -6
+
+
 ###############################################################
 class MatBathy(object):
     def __init__(self, fnm, debug=None):
@@ -179,24 +188,35 @@ class MatBathy(object):
         ww3_grid.inp)
         """
         # -- for size 1 [used to generate SMC]
+        self.globe = np.equal((self.lon[-1] - self.lon[0]), (360. - self.dlon))
+        if self.globe:
+            self.icol_beg, self.icol_end = glob_icol_beg, glob_icol_end
+            self.jrow_beg, self.jrow_end = glob_jrow_beg, glob_jrow_end
+        else:
+            self.icol_beg, self.icol_end = reg_icol_beg, reg_icol_end
+            self.jrow_beg, self.jrow_end = reg_jrow_beg, reg_jrow_end
+
         self.flon = self.lon[0]
         self.flat = self.lat[0]
+        self.flon_reduced = self.lon[self.icol_beg]
+        self.flat_reduced = self.lat[self.jrow_beg]
         self.zlon = self.flon - self.dlon * .5 # lon of s-w corner
         self.zlat = self.flat - self.dlat * .5 # lat of s-w corner
+        self.zlon_reduced = self.zlon + self.icol_beg * self.dlon
+        self.zlat_reduced = self.zlat + self.jrow_beg * self.dlat
         self.nrow = self.lat.size
         self.ncol = self.lon.size
-        self.globe = np.equal((self.lon[-1] - self.lon[0]), (360. - self.dlon))
 
         # -- for base level (size-4) [used in ww3_grid.inp]
         # -- NX, NY and XE, YE probably need be adjust for global simulation.
         self.ww3_grid = OrderedDict()
         self.ww3_grid['DX'] = self.dlon*4
         self.ww3_grid['DY'] = self.dlat*4
-        self.ww3_grid['X1'] = self.zlon + 0.5 * (self.dlon*4)
-        self.ww3_grid['Y1'] = self.zlat + 0.5 * (self.dlat*4)
-        self.ww3_grid['NX'] = np.floor((self.lon[-1]-self.zlon) / (self.dlon*4)
+        self.ww3_grid['X1'] = self.zlon_reduced + 0.5 * (self.dlon*4)
+        self.ww3_grid['Y1'] = self.zlat_reduced + 0.5 * (self.dlat*4)
+        self.ww3_grid['NX'] = np.floor((self.lon[self.icol_end]-self.zlon_reduced) / (self.dlon*4)
                                       ).astype('i') + 1
-        self.ww3_grid['NY'] = np.floor((self.lat[-1]-self.zlat) / (self.dlat*4)
+        self.ww3_grid['NY'] = np.floor((self.lat[self.jrow_end]-self.zlat_reduced) / (self.dlat*4)
                                       ).astype('i') + 1
         self.ww3_grid['XE'] = self.ww3_grid['X1'] + (self.ww3_grid['NX']-1) * (
                               self.dlon*4)
@@ -414,7 +434,6 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
             for (jnd, ind) in island_index:
                 print jnd, ind, bathy_obj.depth[jnd, ind]
 
-            print
 
         bathy_obj.depth[island_index[:, 0], island_index[:, 1]] = land_value
 
@@ -433,7 +452,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     # -- refp: reference points [any point can be the reference point]
     #    for convenience, we should use (0, 0) or (zlon, zlat) of the bathy file
     #    the index for reference point is (0, 0)
-    if refp is None: refp = (bathy_obj.zlon, bathy_obj.zlat)
+    if refp is None: refp = (bathy_obj.zlon_reduced, bathy_obj.zlat_reduced)
 
     rx, ry = refp # reference point
     j0 = long(np.rint((bathy_obj.zlat - ry) / bathy_obj.dlat)) # rint
@@ -558,21 +577,6 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     # -- determine i,j start & end
     # -- [Note: python is 0-based and the end point of arange function is
     # --  excluded]
-    if bathy_obj.globe:
-        # jrow_beg, jrow_end = 4, -4 # the first four rows are Antartic land
-                                   # # so we can exclude it
-                                   # #
-        # TD - Above was failing for global grids - need to look at it.
-        # Changing to 8 works for now
-        jrow_beg, jrow_end = 4, -8 # the first four rows are Antartic land
-                                   # so we can exclude it
-        icol_beg, icol_end = 0, -4
-    else: # smc less than the normal grid
-        # TODO - Why are these like this? Followup with Qingxiang
-        # jrow_beg, jrow_end = 4, -16
-        # icol_beg, icol_end = 4, -8
-        jrow_beg, jrow_end = 4, -16
-        icol_beg, icol_end = 4, -8
 
     # -- Wrap around 360 [only work for global domain]
     ColMax = long(np.rint((360. / bathy_obj.dlon)))
@@ -587,7 +591,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     smc_latmax = -999
     smc_lonmax = -999
 
-    for jrow in tqdm(np.arange(jrow_beg, bathy_obj.nrow + jrow_end, 4)):
+    for jrow in tqdm(np.arange(bathy_obj.jrow_beg, bathy_obj.nrow + bathy_obj.jrow_end + 1 , 4)):
         loc_parmg = np.digitize([jrow,], jparmg)[0] - 1
         ism = 2 ** np.abs(7-loc_parmg)
 
@@ -602,12 +606,13 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
             print '.... N1, N2, N4, NL:', N1, N2, N4, NL
 
         # -- the range of icol is pretty confused [+1 is very important]
-        for icol in np.arange(icol_beg*ism, bathy_obj.ncol+icol_end*ism+1,
+        for icol in np.arange(bathy_obj.icol_beg*ism, bathy_obj.ncol + bathy_obj.icol_end*ism + 1,
                               4*ism):
 
             if np.equal(lp_map[jrow, icol], -1): continue
 
             icel = i0 + icol # Important elment: icel
+            icol_lonc = bathy_obj.flon + icol * bathy_obj.dlon # center latitude
 
             # -- Check Neighbor 8 * ism * 8 cells [end point is exclusive]
             jneigh = jrow + np.arange(-2, 6, dtype='l')
