@@ -189,7 +189,9 @@ class MatBathy(object):
         ww3_grid.inp)
         """
         # -- for size 1 [used to generate SMC]
-        self.globe = np.equal((self.lon[-1] - self.lon[0]), (360. - self.dlon))
+        if (np.equal((self.lon[-1] - self.lon[0]), (360. - self.dlon)) or
+           np.equal((self.lon[-1] - self.lon[0]), (360.))):
+            self.globe=True
         if self.globe:
             self.icol_beg, self.icol_end = glob_icol_beg, glob_icol_end
             self.jrow_beg, self.jrow_end = glob_jrow_beg, glob_jrow_end
