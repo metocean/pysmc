@@ -89,7 +89,7 @@ class DockerRun(object):
     def __init__(self,
                  cmd,
                  headip='localhost',
-                 dopts={'image': 'metocean/matlab:gridgen',
+                 dopts={'image': 'metocean/matlab:gridgen-jorge',
                         'user': 'metocean',
                         'volumes': ['/flush:/flush',
                                     '/source:/source',
