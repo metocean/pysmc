@@ -43,6 +43,7 @@ def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, 
 
     ## load field:
     print " + Loading field data"
+    __import__('ipdb').set_trace()
     fld = dataset.variables[field][tidx,:]
 
     plot_region_fld(fld, smc_patch_collection, lon1=lon1, lat1=lat1, lon2=lon2,
@@ -415,7 +416,7 @@ def main():
                         help='file path')
     parser.add_argument('-t' '--tidx', type=int, default=0,
                         help='timestep to plot')
-    parser.add_argument('-v' '--variable', type=str, default=0,
+    parser.add_argument('-v' '--variable', type=str, default='hs',
                         help='variable to plot')
     args = parser.parse_args()
     plot_file(args.fn, tidx=args.t__tidx, field=args.v__variable)
