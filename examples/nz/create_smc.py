@@ -38,7 +38,7 @@ if genGrid:
 smcFnm = 'NZCell.dat'
 obsFnm = 'NZObs.dat'
 glbSMC = smc.UnSMC(smcFnm, dlon=glbBathy.dlon, dlat=glbBathy.dlat,
-                   refp=(glbBathy.zlon_reduced, glbBathy.zlat_reduced)
+                   refp=glbBathy.refp,
                    )#, proj=proj)
 glbSMC.readObs(obsFnm)
 
