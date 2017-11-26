@@ -43,7 +43,6 @@ def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, 
 
     ## load field:
     print " + Loading field data"
-    __import__('ipdb').set_trace()
     fld = dataset.variables[field][tidx,:]
 
     plot_region_fld(fld, smc_patch_collection, lon1=lon1, lat1=lat1, lon2=lon2,
@@ -82,7 +81,9 @@ def plot_region_fld(fldall, smc_patch_collection, lon1=None, lat1=None, lon2=Non
     p.set_edgecolors('gray')
 
     print " + Adding patches to axes"
-    plt.gca().add_collection(p)
+    ax = plt.gca()
+    ax.add_collection(p)
+    ax.coastlines(resolution='50m')
 
     # -- temporary while testing --#
     plt.gca().set_extent([lon1, lon2, lat1, lat2])
