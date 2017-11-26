@@ -216,8 +216,8 @@ class MatBathy(object):
         self.ww3_grid = OrderedDict()
         self.ww3_grid['DX'] = self.dlon*4
         self.ww3_grid['DY'] = self.dlat*4
-        self.ww3_grid['X1'] = self.zlon_reduced + 0.5 * (self.dlon)
-        self.ww3_grid['Y1'] = self.zlat_reduced + 0.5 * (self.dlat)
+        self.ww3_grid['X1'] = self.zlon_reduced + (0.5 * self.dlon)
+        self.ww3_grid['Y1'] = self.zlat_reduced + (0.5 * self.dlat)
         self.ww3_grid['NX'] = np.floor((self.lon[self.icol_end]-self.zlon_reduced) / (self.dlon*4)
                                       ).astype('i') + 1
         self.ww3_grid['NY'] = np.floor((self.lat[self.jrow_end]-self.zlat_reduced) / (self.dlat*4)
@@ -459,8 +459,10 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     # refp_ww3grid = (bathy_obj.flon_reduced + (4*bathy_obj.dlon/2),
                     # bathy_obj.flat_reduced + (4*bathy_obj.dlat/2))
 
-    if refp is None: refp = (bathy_obj.ww3_grid['X1'],
-                             bathy_obj.ww3_grid['Y1'])
+    # if refp is None: refp = (bathy_obj.ww3_grid['X1'],
+                             # bathy_obj.ww3_grid['Y1'])
+    if refp is None: refp = (bathy_obj.zlon_reduced,
+                             bathy_obj.zlat_reduced)
     bathy_obj.refp = refp
 
     rx, ry = refp # reference point
