@@ -466,8 +466,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
     bathy_obj.refp = refp
 
     rx, ry = refp # reference point
-    j0 = long(np.rint((bathy_obj.ww3_grid['Y1'] - ry) / bathy_obj.dlat)) # rint
-    i0 = long(np.rint((bathy_obj.ww3_grid['X1'] - rx) / bathy_obj.dlon))
+    j0 = long(np.rint((refp[1] - ry) / bathy_obj.dlat)) # rint
+    i0 = long(np.rint((refp[0] - rx) / bathy_obj.dlon))
     if debug:
         print
         print '**** [SMCGrid] index shift ****'
