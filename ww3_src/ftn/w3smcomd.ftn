@@ -129,7 +129,6 @@
 
       ! Determine number of cells in grid:
       NXO = INT((EXO - SXO) / DXO) + 1
-      write(*,*) 'NXO ', 'EXO ', 'SXO ', 'DXO ',NXO, EXO, SXO, DXO
       NYO = INT((EYO - SYO) / DYO) + 1
 
       IF(SMCTYPE .EQ. 2) THEN
@@ -229,8 +228,8 @@
       ENDDO
 
       ! Reset SXO and SYO to be the cell-centre (currently cell SW edge):
-      SXO = SXO + 0.5 * DXO
-      SYO = SYO + 0.5 * DYO
+      SXO = SXO + 0.5 * SX
+      SYO = SYO + 0.5 * SY
 
       END SUBROUTINE SMC_INTERP
       
