@@ -822,10 +822,10 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
 
     if gen_cell_sides:
         genCellSides(bathy_obj.gid.upper(),
-                     bathy_obj.ww3_grid['NY'],
-                     bathy_obj.ww3_grid['NX'],
-                     bathy_obj.ww3_grid['DY'],
-                     bathy_obj.ww3_grid['DX'])
+                     bathy_obj.ww3_grid['NY']*4.,
+                     bathy_obj.ww3_grid['NX']*4.,
+                     bathy_obj.ww3_grid['DY']/4.,
+                     bathy_obj.ww3_grid['DX']/4.)
 
     return smcCell
 

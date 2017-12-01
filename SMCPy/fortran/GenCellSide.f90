@@ -84,7 +84,8 @@ MODULE GenCellSide
 
 !  Call subroutines to generate flux faces
 
-   CALL CellSide(gridid)
+   CALL CellSide(gridid, nlon)
+
 !     Open files to store writups
    OPEN(UNIT=16,FILE=trim(gridid)//'SMCSide.txt',STATUS='UNKNOWN',IOSTAT=nn,ACTION='WRITE')
    IF(nn /= 0) PRINT*,' File messgs.txt was not opened! '
@@ -113,9 +114,10 @@ MODULE GenCellSide
 
 
 ! Subroutine that generates the cell side information
- SUBROUTINE CellSide(gridid)
+ SUBROUTINE CellSide(gridid, nlon)
    IMPLICIT NONE
    REAL:: CNST, CNST1, CNST2, CNST3
+   INTEGER::  nlon
    CHARACTER(LEN=16):: gridid
 
 !!    Test integer division for boundary cell numbers
@@ -142,7 +144,10 @@ MODULE GenCellSide
 
 !!  Cyclic boundary for i-side at L-cell east side
          LM=ICE(1,L)+ICE(3,L)
-         IF(LM .ge. NLon) LM=LM-NLon
+         IF(LM .ge. NLon) THEN
+            print*, "Wrapping lon" , LM, NLon
+            LM=LM-NLon
+         ENDIF
 
 !!  Cell height size is different from width size sometimes
          KL=ICE(2,L)+ICE(4,L)
