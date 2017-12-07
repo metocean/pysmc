@@ -204,6 +204,8 @@ class MatBathy(object):
         self.flat = self.lat[0]
         self.flon_reduced = self.lon[self.icol_beg]
         self.flat_reduced = self.lat[self.jrow_beg]
+        self.elon_reduced = self.lon[self.icol_end]
+        self.elat_reduced = self.lat[self.jrow_end]
         self.zlon = self.flon - self.dlon * .5 # lon of s-w corner
         self.zlat = self.flat - self.dlat * .5 # lat of s-w corner
         self.zlon_reduced = self.zlon + self.icol_beg * self.dlon
@@ -216,16 +218,18 @@ class MatBathy(object):
         self.ww3_grid = OrderedDict()
         self.ww3_grid['DX'] = self.dlon*4
         self.ww3_grid['DY'] = self.dlat*4
-        self.ww3_grid['X1'] = self.zlon_reduced + (0.5 * self.dlon)
-        self.ww3_grid['Y1'] = self.zlat_reduced + (0.5 * self.dlat)
-        self.ww3_grid['NX'] = np.floor((self.lon[self.icol_end]-self.zlon_reduced) / (self.dlon*4)
-                                      ).astype('i') + 1
-        self.ww3_grid['NY'] = np.floor((self.lat[self.jrow_end]-self.zlat_reduced) / (self.dlat*4)
-                                      ).astype('i') + 1
-        self.ww3_grid['XE'] = self.ww3_grid['X1'] + (self.ww3_grid['NX']-1) * (
-                              self.dlon*4)
-        self.ww3_grid['YE'] = self.ww3_grid['Y1'] + (self.ww3_grid['NY']-1) * (
-                              self.dlat*4)
+        self.ww3_grid['X1'] = self.flon_reduced + (0.5 * self.dlon * 4)
+        self.ww3_grid['Y1'] = self.flat_reduced + (0.5 * self.dlat * 4)
+        self.ww3_grid['XE'] = self.elon_reduced + (0.5 * self.dlon * 4)
+        self.ww3_grid['YE'] = self.elat_reduced + (0.5 * self.dlat * 4)
+        # self.ww3_grid['XE'] = self.ww3_grid['X1'] + (self.ww3_grid['NX']-1) * (
+                              # self.dlon*4)
+        # self.ww3_grid['YE'] = self.ww3_grid['Y1'] + (self.ww3_grid['NY']-1) * (
+                              # self.dlat*4)
+        self.ww3_grid['NX'] = ((self.ww3_grid['XE'] - self.ww3_grid['X1']) /
+                (self.dlon*4)).astype('i') + 1 # (not self.globe)
+        self.ww3_grid['NY'] = ((self.ww3_grid['YE'] - self.ww3_grid['Y1']) /
+                (self.dlat*4)).astype('i') + 1
 
 class PyBathy(MatBathy):
 
