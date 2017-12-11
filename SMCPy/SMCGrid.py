@@ -204,8 +204,13 @@ class MatBathy(object):
         self.flat = self.lat[0]
         self.flon_reduced = self.lon[self.icol_beg]
         self.flat_reduced = self.lat[self.jrow_beg]
-        self.elon_reduced = self.lon[self.icol_end]
-        self.elat_reduced = self.lat[self.jrow_end]
+        # Not sure this is right...works for global domains,
+        # need to test for regional
+        self.elat_reduced = self.lat[self.jrow_end-1]
+        if self.globe:
+            self.elon_reduced = self.lon[self.icol_end]
+        else:
+            self.elon_reduced = self.lon[self.icol_end-1]
         self.zlon = self.flon - self.dlon * .5 # lon of s-w corner
         self.zlat = self.flat - self.dlat * .5 # lat of s-w corner
         self.zlon_reduced = self.zlon + self.icol_beg * self.dlon
@@ -230,6 +235,7 @@ class MatBathy(object):
                 (self.dlon*4)).astype('i') + 1 # (not self.globe)
         self.ww3_grid['NY'] = ((self.ww3_grid['YE'] - self.ww3_grid['Y1']) /
                 (self.dlat*4)).astype('i') + 1
+        __import__('ipdb').set_trace()
 
 class PyBathy(MatBathy):
 
