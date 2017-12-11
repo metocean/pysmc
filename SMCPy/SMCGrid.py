@@ -235,7 +235,6 @@ class MatBathy(object):
                 (self.dlon*4)).astype('i') + 1 # (not self.globe)
         self.ww3_grid['NY'] = ((self.ww3_grid['YE'] - self.ww3_grid['Y1']) /
                 (self.dlat*4)).astype('i') + 1
-        __import__('ipdb').set_trace()
 
 class PyBathy(MatBathy):
 
@@ -649,8 +648,8 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
             sea_cells = neigh_cells[np.where(neigh_cells<refining_depth)]
             count_sea = sea_cells.size
             icol_smc = bathy_obj.flon + icol * bathy_obj.dlon - bathy_obj.dlon/2 # sw corner
-            if bathy_obj.globe:
-                icol_smc %= 360
+            # if bathy_obj.globe:
+                # icol_smc %= 360
             smc_lonmin = min(smc_lonmin, icol_smc)
             smc_lonmax = max(smc_lonmax, icol_smc)
             central_lonmin = min(central_lonmin, icol_lonc)
