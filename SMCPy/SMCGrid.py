@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 # File              : SMCGrid.py
 # Author            : Tom Durrant <t.durrant@metocean.co.nz>
-# Date              : 04.11.2017
+# Date              : 03.11.2017
 # Last Modified Date: 04.11.2017
 # Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 # -*- coding: utf-8 -*-
 """
 SMCGridGen.py
 
-Author: Qingxiang Liu
+Author            : Qingxiang Liu
 
-Date  : Thu Aug 20 2015 [Generate bathy array from etopo file]
+Date              : Thu Aug 20 2015 [Generate bathy array from etopo file]
 Mod   : Sat Oct 17 2015 [Generate bathy/obst from ww3 gridgen Matlab package]
 Mod   : add a `buoy_list` argument to the GenSMCGrid function.
 Mod   : Sun Jan 24 2016 [Global SMC grid]
@@ -775,7 +775,7 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         genCellSides(bathy_obj.gid.upper(),
                      bathy_obj.ww3_grid['NY'],
                      bathy_obj.ww3_grid['NX'],
-                     bathy_obj.ww3_grid['DX'],
+                     bathy_obj.ww3_grid['DY'],
                      bathy_obj.ww3_grid['DX'])
 
     return smcCell
