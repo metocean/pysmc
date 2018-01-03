@@ -2,13 +2,13 @@
 # Chris Bunney, Met Office.
 # Crown Copyright 2016
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import GObject
 
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
+from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 import cartopy.crs as ccrs
 
 import netCDF4 as nc
@@ -36,7 +36,7 @@ class SMCPlotGui:
         ###############
 
         # create new window
-        self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.win = Gtk.Window(Gtk.WindowType.TOPLEVEL)
 
         ######################
         # setup window
@@ -54,16 +54,16 @@ class SMCPlotGui:
         ################
         # Add menu bar #
         ################
-        menu_bar = gtk.MenuBar()
-        file_menu = gtk.Menu()
-        open_item = gtk.MenuItem("Open")
-        exit_item = gtk.MenuItem("Exit")
+        menu_bar = Gtk.MenuBar()
+        file_menu = Gtk.Menu()
+        open_item = Gtk.MenuItem("Open")
+        exit_item = Gtk.MenuItem("Exit")
         file_menu.append(open_item)
         file_menu.append(exit_item)
 
         open_item.connect("activate", self.load_event)
 
-        root_menu = gtk.MenuItem("File")
+        root_menu = Gtk.MenuItem("File")
         root_menu.set_submenu(file_menu);
         menu_bar.append(root_menu)
 
@@ -73,31 +73,34 @@ class SMCPlotGui:
         ##########
 
         # buttons:
-        btnPlot = gtk.Button('Update Plot')
-        btnPrev = gtk.Button('Prev Time')
-        btnNext = gtk.Button('Next Time')
+        btnPlot = Gtk.Button('Update Plot')
+        btnPrev = Gtk.Button('Prev Time')
+        btnNext = Gtk.Button('Next Time')
 
         # Field combo box:
-        store = gtk.ListStore(str,str)
-        self.cbox_field = gtk.ComboBox(store)
-        cell = gtk.CellRendererText()
+        store = Gtk.ListStore(str,str)
+        self.cbox_field = Gtk.ComboBox.new_with_model_and_entry(store)
+        cell = Gtk.CellRendererText()
         self.cbox_field.pack_start(cell, True)
         self.cbox_field.add_attribute(cell, 'text', 1)
+        self.cbox_field.set_entry_text_column(1)
         store.append(['hs','sig wave heihgt'])
 
+
         # Times combo box:
-        store = gtk.ListStore(int,str)
-        self.cbox_times = gtk.ComboBox(store)
-        cell = gtk.CellRendererText()
+        store = Gtk.ListStore(int,str)
+        self.cbox_times = Gtk.ComboBox.new_with_model_and_entry(store)
+        cell = Gtk.CellRendererText()
         self.cbox_times.pack_start(cell, True)
         self.cbox_times.add_attribute(cell, 'text', 1)
+        self.cbox_times.set_entry_text_column(1)
         #for i in range(1,61):
         #    store.append([i-1, 'T+%03d' % i])
 
         # Domain combo box:
-        store = gtk.ListStore(str,float,float,float,float)
-        self.cbox_domains = gtk.ComboBox(store)
-        cell = gtk.CellRendererText()
+        store = Gtk.ListStore(str,float,float,float,float)
+        self.cbox_domains = Gtk.ComboBox.new_with_model_and_entry(store)
+        cell = Gtk.CellRendererText()
         self.cbox_domains.pack_start(cell, True)
         self.cbox_domains.add_attribute(cell, 'text', 0)
         store.append(['Full Domain (could be slow)', -999.9, -999.9, -999.9, -999.9])
@@ -113,29 +116,34 @@ class SMCPlotGui:
         store.append(['Caribbean', 10.0, 27.5, -86.5, -58.5])
         store.append(['South China Sea', -9.5, 24.0, 98.0, 128.0])
         store.append(['Australasia', -48, 0.0, 105.0, 179.0])
+        store.append(['New Zealand', -50, -30, 160.0, 182.0])
+        self.cbox_domains.set_entry_text_column(0)
         self.cbox_domains.set_active(1)
 
 
         # Projections:
-        store = gtk.ListStore(object, str)
-        self.cbox_proj = gtk.ComboBox(store)
-        cell = gtk.CellRendererText()
+        store = Gtk.ListStore(object, str)
+        self.cbox_proj = Gtk.ComboBox.new_with_model_and_entry(store)
+        cell = Gtk.CellRendererText()
         self.cbox_proj.pack_start(cell, True)
         self.cbox_proj.add_attribute(cell, 'text', 1)
+        self.cbox_proj.set_entry_text_column(1)
         store.append([ccrs.PlateCarree(), 'Plate Carree'])
         store.append([ccrs.RotatedPole(pole_latitude=37.5, pole_longitude=177.5),'Euro Rotated Pole'])
         store.append([ccrs.Robinson(), 'Robinson'])
         store.append([ccrs.Mercator(), 'Mercator'])
         store.append([ccrs.Geostationary(), 'Geostationary'])
+        store.append([ccrs.PlateCarree(central_longitude=180), 'Plate Carree (central_longitude=180)'])
 
         self.cbox_proj.set_active(0)
 
         # coastlines:
-        store = gtk.ListStore(object, str)
-        self.cbox_coast = gtk.ComboBox(store)
-        cell = gtk.CellRendererText()
+        store = Gtk.ListStore(object, str)
+        self.cbox_coast = Gtk.ComboBox.new_with_model_and_entry(store)
+        cell = Gtk.CellRendererText()
         self.cbox_coast.pack_start(cell, True)
         self.cbox_coast.add_attribute(cell, 'text', 1)
+        self.cbox_coast.set_entry_text_column(1)
         store.append([None, 'None'])
         store.append(['10m', 'High res (10m)'])
         store.append(['50m', 'Medium res (50m)'])
@@ -145,31 +153,31 @@ class SMCPlotGui:
         self.coast = '110m'
 
         # lat/lon ranges:
-        self.inLat1 = gtk.Entry();
-        self.inLat2 = gtk.Entry();
-        self.inLon1 = gtk.Entry();
-        self.inLon2 = gtk.Entry();
+        self.inLat1 = Gtk.Entry();
+        self.inLat2 = Gtk.Entry();
+        self.inLon1 = Gtk.Entry();
+        self.inLon2 = Gtk.Entry();
         self.domain_changed_event(self.cbox_domains) # update with default domain
 
         # Cell size selection
-        cellsbox = gtk.HBox(homogeneous=False, spacing=5)
-        self.chkf1 = gtk.CheckButton("3km")
-        self.chkf2 = gtk.CheckButton("6km")
-        self.chkf3 = gtk.CheckButton("12km")
-        self.chkf4 = gtk.CheckButton("25km")
-        cellsbox.pack_end(self.chkf1)
-        cellsbox.pack_end(self.chkf2)
-        cellsbox.pack_end(self.chkf3)
-        cellsbox.pack_end(self.chkf4)
+        cellsbox = Gtk.HBox(homogeneous=False, spacing=5)
+        self.chkf1 = Gtk.CheckButton("3km")
+        self.chkf2 = Gtk.CheckButton("6km")
+        self.chkf3 = Gtk.CheckButton("12km")
+        self.chkf4 = Gtk.CheckButton("25km")
+        cellsbox.pack_end(self.chkf1, True, True, 0)
+        cellsbox.pack_end(self.chkf2, True, True, 0)
+        cellsbox.pack_end(self.chkf3, True, True, 0)
+        cellsbox.pack_end(self.chkf4, True, True, 0)
 
         # Colour range box:
-        crangebox = gtk.HBox(homogeneous=False, spacing=5)
-        self.cmin = gtk.Entry()
-        self.cmax = gtk.Entry()
-        self.cauto = gtk.CheckButton('Auto')
-        crangebox.pack_start(self.cmin)
-        crangebox.pack_start(self.cmax)
-        crangebox.pack_start(self.cauto)
+        crangebox = Gtk.HBox(homogeneous=False, spacing=5)
+        self.cmin = Gtk.Entry()
+        self.cmax = Gtk.Entry()
+        self.cauto = Gtk.CheckButton('Auto')
+        crangebox.pack_start(self.cmin, True, True, 0)
+        crangebox.pack_start(self.cmax, True, True, 0)
+        crangebox.pack_start(self.cauto, True, True, 0)
         self.cauto.set_active(True)
         self.cmin.set_sensitive(False)
         self.cmax.set_sensitive(False)
@@ -178,67 +186,67 @@ class SMCPlotGui:
 
 
         ## controls layout
-        grid = gtk.Table(rows=8, columns=3)
-        grid.attach(gtk.Label('Field'),     0, 1, 0, 1, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Time'),      0, 1, 1, 2, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Projection'),0, 1, 2, 3, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Coastline'), 0, 1, 3, 4, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Domain '),   0, 1, 4, 5, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Lat Range'), 0, 1, 5, 6, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Lon Range'), 0, 1, 6, 7, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Cells'),     0, 1, 7, 8, yoptions=gtk.SHRINK)
-        grid.attach(gtk.Label('Colour range'),0, 1, 8, 9, yoptions=gtk.SHRINK)
+        grid = Gtk.Table(rows=8, columns=3)
+        grid.attach(Gtk.Label(label='Field'),     0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Time'),      0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Projection'),0, 1, 2, 3, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Coastline'), 0, 1, 3, 4, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Domain '),   0, 1, 4, 5, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Lat Range'), 0, 1, 5, 6, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Lon Range'), 0, 1, 6, 7, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Cells'),     0, 1, 7, 8, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Colour range'),0, 1, 8, 9, yoptions=Gtk.AttachOptions.SHRINK)
 
-        grid.attach(self.cbox_field,        1, 3, 0, 1, yoptions=gtk.SHRINK)
-        grid.attach(self.cbox_times,        1, 3, 1, 2 ,yoptions=gtk.SHRINK)
-        grid.attach(self.cbox_proj,         1, 3, 2, 3 ,yoptions=gtk.SHRINK)
-        grid.attach(self.cbox_coast,        1, 3, 3, 4 ,yoptions=gtk.SHRINK)
-        grid.attach(self.cbox_domains,      1, 3, 4, 5 ,yoptions=gtk.SHRINK)
-        grid.attach(self.inLat1,            1, 2, 5, 6, yoptions=gtk.SHRINK)
-        grid.attach(self.inLat2,            2, 3, 5, 6, yoptions=gtk.SHRINK)
-        grid.attach(self.inLon1,            1, 2, 6, 7, yoptions=gtk.SHRINK)
-        grid.attach(self.inLon2,            2, 3, 6, 7, yoptions=gtk.SHRINK)
-        grid.attach(cellsbox,               1, 3, 7, 8, yoptions=gtk.SHRINK)
-        grid.attach(crangebox,              1, 3, 8, 9, yoptions=gtk.SHRINK)
+        grid.attach(self.cbox_field,        1, 3, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.cbox_times,        1, 3, 1, 2 ,yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.cbox_proj,         1, 3, 2, 3 ,yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.cbox_coast,        1, 3, 3, 4 ,yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.cbox_domains,      1, 3, 4, 5 ,yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.inLat1,            1, 2, 5, 6, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.inLat2,            2, 3, 5, 6, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.inLon1,            1, 2, 6, 7, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(self.inLon2,            2, 3, 6, 7, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(cellsbox,               1, 3, 7, 8, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(crangebox,              1, 3, 8, 9, yoptions=Gtk.AttachOptions.SHRINK)
 
 
-        #grid.attach(btnPlot,                0, 1, 8, 9, yoptions=gtk.SHRINK, xoptions=gtk.SHRINK)
+        #grid.attach(btnPlot,                0, 1, 8, 9, yoptions=Gtk.AttachOptions.SHRINK, xoptions=Gtk.AttachOptions.SHRINK)
         # Hbox for plot buttons
-        btn_hbox = gtk.HBox(homogeneous=False, spacing=5)
+        btn_hbox = Gtk.HBox(homogeneous=False, spacing=5)
         btn_hbox.pack_start(btnPrev, True, False, 0)
         btn_hbox.pack_start(btnPlot, True, False, 0)
         btn_hbox.pack_start(btnNext, True, False, 0)
 
 
         ## File details text view
-        txt = gtk.TextBuffer()
+        txt = Gtk.TextBuffer()
         txt.set_text('Please load a file')
-        self.tv_file_details = gtk.TextView(txt)
+        self.tv_file_details = Gtk.TextView.new_with_buffer(txt)
 
-        vbox = gtk.VBox(spacing=15)
-        vbox.pack_start(grid, False)
-        vbox.pack_start(btn_hbox, False)
-        vbox.pack_end(self.tv_file_details, True)
+        vbox = Gtk.VBox(spacing=15)
+        vbox.pack_start(grid, False, True, 0)
+        vbox.pack_start(btn_hbox, False, True, 0)
+        vbox.pack_end(self.tv_file_details, True, True, 0)
 
         # plot controls
-        from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg as NavigationToolbar
+        from matplotlib.backends.backend_gtk3 import NavigationToolbar2GTK3 as NavigationToolbar
         toolbar = NavigationToolbar(self.canvas, self.win)
         #vbox.pack_end(toolbar, False, False)
 
         # Top level layout box:
-        topbox = gtk.VBox()
-        topbox.pack_start(menu_bar, expand=False, fill=True)
+        topbox = Gtk.VBox()
+        topbox.pack_start(menu_bar, False, True, 0)
 
-        box = gtk.HBox(homogeneous=False, spacing=5)
-        topbox.pack_end(box)
+        box = Gtk.HBox(homogeneous=False, spacing=5)
+        topbox.pack_end(box, True, True, 0)
 
         # canvas/toolbar layout
-        plotbox = gtk.VBox(homogeneous=False, spacing=0)
-        plotbox.pack_start(self.canvas, expand=True, fill=True)
-        plotbox.pack_end(toolbar, False, False)
+        plotbox = Gtk.VBox(homogeneous=False, spacing=0)
+        plotbox.pack_start(self.canvas, True, True, 0)
+        plotbox.pack_end(toolbar, False, False, 0)
 
-        box.pack_start(plotbox, expand=True, fill=True)
-        box.pack_end(vbox, expand=False, fill=False)
+        box.pack_start(plotbox, True, True, 0)
+        box.pack_end(vbox, False, False, 0)
         self.win.add(topbox)
 
 
@@ -300,7 +308,7 @@ class SMCPlotGui:
             o.set_text(val)
 
     def destroy(self, widget, data=None):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def load_event(self, widget, data=None):
         # pop up a file selectro dialog and load the file
@@ -308,18 +316,18 @@ class SMCPlotGui:
             self.loadfile(self.ncfn)
 
     def selectfile(self):
-        dlg = gtk.FileChooserDialog(title='Select a SMC netCDF file',
-                action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
-        dlg.set_default_response(gtk.RESPONSE_OK)
+        dlg = Gtk.FileChooserDialog(title='Select a SMC netCDF file',
+                action=Gtk.FileChooserAction.OPEN,
+                buttons=(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,Gtk.STOCK_OPEN,Gtk.ResponseType.OK))
+        dlg.set_default_response(Gtk.ResponseType.OK)
 
         ret = dlg.run()
-        if ret == gtk.RESPONSE_OK:
+        if ret == Gtk.ResponseType.OK:
             self.ncfn = dlg.get_filename()
 
         dlg.destroy()
 
-        return (ret == gtk.RESPONSE_OK)
+        return (ret == Gtk.ResponseType.OK)
 
     def loadfile(self, fn):
         self.d = nc.Dataset(fn, mode='r')
@@ -540,7 +548,7 @@ class SMCPlotGui:
         # the axis along with the coastlines:
         if self.pc is None:
             txt.insert(end_iter, "Domain has changed - recalculating patches...")
-            while gtk.events_pending(): gtk.main_iteration_do(True)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
             self.pc = smc.generate_patch_collection(self.d,
                     lon1=self.lon1, lon2=self.lon2,
@@ -550,12 +558,12 @@ class SMCPlotGui:
 
             end_iter = txt.get_end_iter()
             txt.insert(end_iter, "Done\n")
-            while gtk.events_pending(): gtk.main_iteration_do(True)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
             end_iter = txt.get_end_iter()
             txt.insert(end_iter, "Adding patches to axes\n");
             print("Adding patches to axes\n")
-            while gtk.events_pending(): gtk.main_iteration_do(True)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
             ax.cla()
             self.cm = ax.add_collection(self.pc.pcol)
@@ -566,7 +574,7 @@ class SMCPlotGui:
             if self.coast is not None:
                 end_iter = txt.get_end_iter()
                 txt.insert(end_iter, "Adding coastline\n");
-                while gtk.events_pending(): gtk.main_iteration_do(True)
+                while Gtk.events_pending(): Gtk.main_iteration_do(True)
                 ax.coastlines(resolution=self.coast)
 
         elif newcoast:
@@ -575,7 +583,7 @@ class SMCPlotGui:
 
             end_iter = txt.get_end_iter()
             txt.insert(end_iter, "Adding patches to axes\n");
-            while gtk.events_pending(): gtk.main_iteration_do(True)
+            while Gtk.events_pending(): Gtk.main_iteration_do(True)
             self.cm = ax.add_collection(self.pc.pcol)
 
             if not global_extent:
@@ -584,14 +592,14 @@ class SMCPlotGui:
             if self.coast is not None:
                 end_iter = txt.get_end_iter()
                 txt.insert(end_iter, "Adding coastline\n");
-                while gtk.events_pending(): gtk.main_iteration_do(True)
+                while Gtk.events_pending(): Gtk.main_iteration_do(True)
                 ax.coastlines(resolution=self.coast)
 
 
         # update the patch face colours with the new data:
         end_iter = txt.get_end_iter()
         txt.insert(end_iter, "Updating patches...\n");
-        while gtk.events_pending(): gtk.main_iteration_do(True)
+        while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
         if var == 'grid':
             # special case - just plot grid mesh:
@@ -644,10 +652,10 @@ class SMCPlotGui:
         self.canvas.draw()
         end_iter = txt.get_end_iter()
         txt.insert(end_iter, "Done.\n");
-        while gtk.events_pending(): gtk.main_iteration_do(True)
+        while Gtk.events_pending(): Gtk.main_iteration_do(True)
 
     def main(self):
-        gtk.main()
+        Gtk.main()
 
 
 if __name__ == '__main__':

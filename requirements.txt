@@ -1,7 +1,10 @@
-numpy
 matplotlib
+cython # Due to bug in cartopy install
+numpy
 cartopy
 pandas
 tqdm
 cmocean
+netCDF4
 xarray
+scipy
