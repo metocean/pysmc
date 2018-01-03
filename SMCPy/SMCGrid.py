@@ -374,7 +374,7 @@ def FindLevelLoc(size_bbox=None, lon1d=None, lat1d=None):
 def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         size4_bbox=None, debug=True, land_value=1., ncel_thrd=10000000,
         buoy_list=None, arctic=False, gen_cell_sides=True,
-        refining_depth=-250., exclude_flags=None):
+        refining_depth=-250., exclude_flags=None, plotonly=False):
     """
     Generate SMC 3 level grids.
 
@@ -485,6 +485,9 @@ def GenSMCGrid(bathy_obj=None, island_list=None, refp=None, size2_bbox=None,
         print '---- globe [Y/N]:', bathy_obj.globe
         print '---- shift i0, j0:', i0, j0
         print
+
+    if plotonly:
+        return
 
     # -- Row numbers of the merging parallels [Must be multiple of 4 rows]
     # -- Becasue size-4 are the basic cell
