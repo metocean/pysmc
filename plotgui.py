@@ -42,13 +42,13 @@ class SMCPlotGui:
         # setup window
         ######################
         self.win.set_border_width(10)
-        self.win.set_default_size(600, 400)
+        self.win.set_default_size(1200, 500)
         self.win.set_title('SMC Gridded Data Plotter')
 
         ######################
         # add the GTK canvas:
         ######################
-        self.fig = plt.Figure(figsize=(5,4), dpi=100)
+        self.fig = plt.Figure(figsize=(4,3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
 
         ################
@@ -161,14 +161,14 @@ class SMCPlotGui:
 
         # Cell size selection
         cellsbox = Gtk.HBox(homogeneous=False, spacing=5)
-        self.chkf1 = Gtk.CheckButton("3km")
-        self.chkf2 = Gtk.CheckButton("6km")
-        self.chkf3 = Gtk.CheckButton("12km")
-        self.chkf4 = Gtk.CheckButton("25km")
-        cellsbox.pack_end(self.chkf1, True, True, 0)
-        cellsbox.pack_end(self.chkf2, True, True, 0)
-        cellsbox.pack_end(self.chkf3, True, True, 0)
+        self.chkf1 = Gtk.CheckButton("1")
+        self.chkf2 = Gtk.CheckButton("2")
+        self.chkf3 = Gtk.CheckButton("3")
+        self.chkf4 = Gtk.CheckButton("4")
         cellsbox.pack_end(self.chkf4, True, True, 0)
+        cellsbox.pack_end(self.chkf3, True, True, 0)
+        cellsbox.pack_end(self.chkf2, True, True, 0)
+        cellsbox.pack_end(self.chkf1, True, True, 0)
 
         # Colour range box:
         crangebox = Gtk.HBox(homogeneous=False, spacing=5)
@@ -194,7 +194,7 @@ class SMCPlotGui:
         grid.attach(Gtk.Label(label='Domain '),   0, 1, 4, 5, yoptions=Gtk.AttachOptions.SHRINK)
         grid.attach(Gtk.Label(label='Lat Range'), 0, 1, 5, 6, yoptions=Gtk.AttachOptions.SHRINK)
         grid.attach(Gtk.Label(label='Lon Range'), 0, 1, 6, 7, yoptions=Gtk.AttachOptions.SHRINK)
-        grid.attach(Gtk.Label(label='Cells'),     0, 1, 7, 8, yoptions=Gtk.AttachOptions.SHRINK)
+        grid.attach(Gtk.Label(label='Cell Factor'),     0, 1, 7, 8, yoptions=Gtk.AttachOptions.SHRINK)
         grid.attach(Gtk.Label(label='Colour range'),0, 1, 8, 9, yoptions=Gtk.AttachOptions.SHRINK)
 
         grid.attach(self.cbox_field,        1, 3, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
@@ -223,7 +223,7 @@ class SMCPlotGui:
         txt.set_text('Please load a file')
         self.tv_file_details = Gtk.TextView.new_with_buffer(txt)
 
-        vbox = Gtk.VBox(spacing=15)
+        vbox = Gtk.VBox(spacing=5)
         vbox.pack_start(grid, False, True, 0)
         vbox.pack_start(btn_hbox, False, True, 0)
         vbox.pack_end(self.tv_file_details, True, True, 0)
