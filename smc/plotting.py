@@ -36,7 +36,7 @@ def load_ww3_txt(fnm):
     return np.array(ret, dtype='float')
 
 def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
-        field='hs', tidx=0, clim=[None,None]):
+        field='hs', tidx=0, clim=[None,None], **kwargs):
 
     if not isinstance(dataset, nc.Dataset):
         raise TypeError("Dataset should be a netCDF4 dataset object")
@@ -46,10 +46,10 @@ def plot_region(dataset, smc_patch_collection, lon1=None, lat1=None, lon2=None, 
     fld = dataset.variables[field][tidx,:]
 
     plot_region_fld(fld, smc_patch_collection, lon1=lon1, lat1=lat1, lon2=lon2,
-            lat2=lat2, field=field, tidx=tidx, clim=clim)
+            lat2=lat2, field=field, tidx=tidx, clim=clim, **kwargs)
 
 def plot_region_txt(fnm, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
-        field='hs', tidx=0, clim=[None,None]):
+        field='hs', tidx=0, clim=[None,None], **kwargs):
 
     ## load field:
     print " + Loading field data"
@@ -59,7 +59,7 @@ def plot_region_txt(fnm, smc_patch_collection, lon1=None, lat1=None, lon2=None, 
              lon2=lon2, lat2=lat2, field=field, tidx=tidx, clim=clim)
 
 def plot_region_fld(fldall, smc_patch_collection, lon1=None, lat1=None, lon2=None, lat2=None,
-        field='hs', tidx=0, clim=[None,None]):
+        field='hs', tidx=0, clim=[None,None], coast_res='50m'):
 
     if not isinstance(smc_patch_collection, SMCPatchCollection):
         raise TypeError("smc_patch_collection should be a SMCPatchCollection object")
@@ -83,10 +83,10 @@ def plot_region_fld(fldall, smc_patch_collection, lon1=None, lat1=None, lon2=Non
     print " + Adding patches to axes"
     ax = plt.gca()
     ax.add_collection(p)
-    ax.coastlines(resolution='50m')
+    ax.coastlines(resolution=coast_res)
 
     # -- temporary while testing --#
-    plt.gca().set_extent([lon1, lon2, lat1, lat2])
+    plt.gca().set_extent([lon1, lon2, lat1, lat2], crs=ccrs.PlateCarree())
     #plt.gca().set_extent([lon1-10, lon2+10, lat1-10, lat2+10])
     cax = plt.cm.ScalarMappable(cmap=cm)
     cax.set_array(fld)
@@ -240,11 +240,18 @@ def generate_patch_collection(dataset, lon1=None, lat1=None, lon2=None,
         if source_crs:
             lon1,lat1 = source_crs.transform_point(lon1,lat1,ccrs.PlateCarree())
             lon2,lat2 = source_crs.transform_point(lon2,lat2,ccrs.PlateCarree())
+        else:
+            lon1,lat1 = ccrs.PlateCarree().transform_point(lon1,lat1,ccrs.PlateCarree())
+            lon2,lat2 = ccrs.PlateCarree().transform_point(lon2,lat2,ccrs.PlateCarree())
+
 
     # extract region from data:
     if verbose > 0: print "generate_patch_collection: Extracting region"
     if lon1 is not None:
-        m1 = np.logical_and(lons > lon1, lons < lon2)
+        if lon2 > lon1:
+            m1 = np.logical_and(lons > lon1, lons < lon2)
+        else: # wraps dateline
+            m1 = np.logical_or(lons > lon1, lons < lon2)
     else:
         m1 = np.ones(lons.shape, dtype=np.bool)
 
@@ -397,7 +404,6 @@ def to_regular_grid(field, indices, gridsize):
     return zi
 
 def plot_file(fn, **kwargs):
-    from ww3tools.core import createMap
     ax = plt.axes(projection=ccrs.PlateCarree())
     d = nc.Dataset(fn, mode='r')
     patches = generate_patch_collection(d,
