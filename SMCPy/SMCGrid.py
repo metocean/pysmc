@@ -208,9 +208,9 @@ class MatBathy(object):
         # need to test for regional
         self.elat_reduced = self.lat[self.jrow_end-1]
         if self.globe:
-            self.elon_reduced = self.lon[self.icol_end]
-        else:
             self.elon_reduced = self.lon[self.icol_end-1]
+        else:
+            self.elon_reduced = self.lon[self.icol_end]
         self.zlon = self.flon - self.dlon * .5 # lon of s-w corner
         self.zlat = self.flat - self.dlat * .5 # lat of s-w corner
         self.zlon_reduced = self.zlon + self.icol_beg * self.dlon
