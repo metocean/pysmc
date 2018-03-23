@@ -1,5 +1,5 @@
 matplotlib
-cython # Due to bug in cartopy install
+cython==0.15.1 # Due to bug in cartopy install
 numpy
 cartopy
 pandas
