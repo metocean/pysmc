@@ -188,7 +188,7 @@ class NC2SMC(object):
         if self.xyorder == True:
             self.writedepths = np.rot90(self.depths[self.llx:self.llx+self.use_xpts,self.lly:self.lly+self.use_ypts]) * self.zscale #need to check if this line works properly!
         else:
-            self.writedepths = self.depths[self.lly:self.lly+self.use_ypts,self.llx:self.llx+self.use_xpts] * self.zscale
+            self.writedepths = (self.depths[self.lly:self.lly+self.use_ypts,self.llx:self.llx+self.use_xpts] * self.zscale).filled(999)
         print 'Dimensions of grid for analysis: ',np.shape(self.writedepths)
 
         self.writedepths[self.writedepths>=0] = 999
@@ -225,16 +225,16 @@ class NC2SMC(object):
                     self.writemask[lpy,lpx] = 0
                     if lpx-1 >= 0:
                         if self.writedepths[lpy,lpx-1] != 999:
-                            writemask[lpy,lpx-1] = 1
-                    if lpx+1 < nx:
+                            self.writemask[lpy,lpx-1] = 1
+                    if lpx+1 < self.nx:
                         if self.writedepths[lpy,lpx+1] != 999:
-                            writemask[lpy,lpx+1] = 1
+                            self.writemask[lpy,lpx+1] = 1
                     if lpy-1 >= 0:
                         if self.writedepths[lpy-1,lpx] != 999:
-                            writemask[lpy-1,lpx] = 1
-                    if lpy+1 < ny:
+                            self.writemask[lpy-1,lpx] = 1
+                    if lpy+1 < self.ny:
                         if self.writedepths[lpy+1,lpx] != 999:
-                            writemask[lpy+1,lpx] = 1
+                            self.writemask[lpy+1,lpx] = 1
 
         # 2nd tier
         # if switched on (smc_dcheck) this will retain type 1 cells for
@@ -274,14 +274,14 @@ class NC2SMC(object):
         if 3 <= self.smctiers:
             print ''
             print 'Analysing Tier 3'
-            for lpy in range(0,ny,4):
+            for lpy in range(0,self.ny,4):
         	for lpx in range(0,self.nx,4):
 
                     if np.mod(lpx,200) == 0 and np.mod(lpy,200) == 0:
                 	print 'Analysed %d' %lpx + ' cells in row %d' %lpy
 
                     # ensure we never go straight from tier 3 to tier 1 by searching over a +/-1 box
-                    if lpy-1 >= 0 and lpy+5 < ny and lpx-1 >=0 and lpx+5 < nx:
+                    if lpy-1 >= 0 and lpy+5 < self.ny and lpx-1 >=0 and lpx+5 < self.nx:
 
                 	if np.all( self.writemask[lpy-1:lpy+5,lpx-1:lpx+5]>=2 ):
                 	    self.writemask[lpy:lpy+4,lpx:lpx+4] = 3
@@ -455,7 +455,7 @@ class NC2SMC(object):
 
         if 3 <= self.smctiers:
             self.ntc3 = len(self.tier3)
-            print 'Number of tier 3 cells: ',ntc3
+            print 'Number of tier 3 cells: ',self.ntc3
         self.ntc2 = len(self.tier2)
         print 'Number of tier 2 cells: ',self.ntc2
         self.ntc1 = len(self.tier1)
@@ -466,12 +466,12 @@ class NC2SMC(object):
 
 
     def plot(self):
-        plt.pcolormesh(self.writemask)
-        #if 3 <= self.smctiers:
-        #    plt.scatter(self.t3x,self.t3y,s=1,marker='.',color='k')
-        #plt.scatter(self.t2x,self.t2y,s=1,marker='.',color='b')
-        #plt.scatter(self.t1x,self.t1y,s=1,marker='.',color='r')
-#plt.col#orbar()
+        m = plt.pcolormesh(self.writemask)
+        if 3 <= self.smctiers:
+            plt.scatter(self.t3x,self.t3y,s=1,marker='.',color='k')
+        plt.scatter(self.t2x,self.t2y,s=1,marker='.',color='b')
+        plt.scatter(self.t1x,self.t1y,s=1,marker='.',color='r')
+        plt.colorbar(m)
         plt.show()
 
 

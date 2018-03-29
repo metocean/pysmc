@@ -27,7 +27,7 @@ zscale = 1.0
 xyorder = False
 
 [smc]
-smctiers = 2
+smctiers = 3
 depthlim = 150.0
 depthvar = 0.05
 
