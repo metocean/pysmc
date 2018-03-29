@@ -38,55 +38,60 @@ class NC2SMC(object):
     def read_config(self):
 
         print 'Reading namelist...'
-        myconfig = ConfigParser.RawConfigParser()
-        myconfig.read(self.config)
+        self.myconfig = ConfigParser.RawConfigParser()
+        self.myconfig.read(self.config)
 
         # file locations
-        self.workdir = myconfig.get("files","OutputDir")
-        self.NEMOfile = myconfig.get("files","NEMOfile")
+        self.workdir = self.myconfig.get("files","OutputDir")
+        self.NEMOfile = self.myconfig.get("files","NEMOfile")
 
         # set input rotation and grid values
         self.rotated = False
-        if myconfig.has_option("grid","Rotated"):
-            if myconfig.get("grid","Rotated") == 'True':
+        if self.myconfig.has_option("grid","Rotated"):
+            if self.myconfig.get("grid","Rotated") == 'True':
                 self.rotated = True
-                self.rlat = np.float( myconfig.get("grid","rlat") )
-                self.rlon = np.float( myconfig.get("grid","rlon") )
-                self.ingrid_lllon = np.float( myconfig.get("grid","lllon") )  #longitude sw corner of nemo t-grid
-                self.ingrid_lllat = np.float( myconfig.get("grid","lllat") )  #latitude sw corner of nemo t-grid
-                self.dx = np.float( myconfig.get("grid","dx") )
-                self.dy = np.float( myconfig.get("grid","dy") )
+                self.rlat = np.float( self.myconfig.get("grid","rlat") )
+                self.rlon = np.float( self.myconfig.get("grid","rlon") )
+                self.ingrid_lllon = np.float( self.myconfig.get("grid","lllon") )  #longitude sw corner of nemo t-grid
+                self.ingrid_lllat = np.float( self.myconfig.get("grid","lllat") )  #latitude sw corner of nemo t-grid
+                self.dx = np.float( self.myconfig.get("grid","dx") )
+                self.dy = np.float( self.myconfig.get("grid","dy") )
 
         # grid constraints for limited areas
-        if myconfig.has_option("grid","llx"):
-            self.llx = np.int( myconfig.get("grid","llx") )
+        if self.myconfig.has_option("grid","llx") and self.myconfig.has_option("grid","lllon"):
+            raise Exception("Can only respect llx or lllon, remove one from config")
+        if self.myconfig.has_option("grid","llx"):
+            self.llx = np.int( self.myconfig.get("grid","llx") )
         else:
             self.llx = 0
-        if myconfig.has_option("grid","lly"):
-            self.lly = np.int( myconfig.get("grid","lly") )
+        if self.myconfig.has_option("grid","lly") and self.myconfig.has_option("grid","lllat"):
+            raise Exception("Can only respect llx or lllon, remove one from config")
+        if self.myconfig.has_option("grid","lly"):
+            self.lly = np.int( self.myconfig.get("grid","lly") )
         else:
             self.lly = 0
-        if myconfig.has_option("grid","urx"):
-            self.urx = np.int( myconfig.get("grid","urx") ) + 1
+        if self.myconfig.has_option("grid","urx"):
+            self.urx = np.int( self.myconfig.get("grid","urx") ) + 1
         else:
             self.urx = None
-        if myconfig.has_option("grid","ury"):
-            self.ury = np.int( myconfig.get("grid","ury") ) + 1
+        if self.myconfig.has_option("grid","ury"):
+            self.ury = np.int( self.myconfig.get("grid","ury") ) + 1
         else:
             self.ury = None
 
+
         # conventions for reading file
-        self.xname = myconfig.get("conventions","xname") #name for longitude variable
-        self.yname = myconfig.get("conventions","yname") #name for latitude variable
-        self.zname = myconfig.get("conventions","zname") #name for depth variable
-        self.zscale = np.float( myconfig.get("conventions","zscale") ) #combined scale and pos-neg depth convention
+        self.xname = self.myconfig.get("conventions","xname") #name for longitude variable
+        self.yname = self.myconfig.get("conventions","yname") #name for latitude variable
+        self.zname = self.myconfig.get("conventions","zname") #name for depth variable
+        self.zscale = np.float( self.myconfig.get("conventions","zscale") ) #combined scale and pos-neg depth convention
         self.bathyscale = np.abs(self.zscale)
-        self.xyorder = myconfig.get("conventions","xyorder") #true if bathy variable is x-y array, false if y-x array
+        self.xyorder = self.myconfig.get("conventions","xyorder") #true if bathy variable is x-y array, false if y-x array
 
 # smc information
-        if myconfig.has_section("smc"):
+        if self.myconfig.has_section("smc"):
             smc = True
-            self.smctiers = np.int( myconfig.get("smc","smctiers") ) #how many tiers in the smc refinement
+            self.smctiers = np.int( self.myconfig.get("smc","smctiers") ) #how many tiers in the smc refinement
             self.smcscale = 2.0 ** ( self.smctiers - 1.0 )
             # smc output file names and info for WW3Meta
             self.WW3Cels = 'ww3Cels.dat'
@@ -97,23 +102,23 @@ class NC2SMC(object):
             self.idlabathy = 3
             self.idfmbathy = 1
             self.smc_dcheck = False
-            if myconfig.has_option("smc","depthlim"):
+            if self.myconfig.has_option("smc","depthlim"):
                self.smc_dcheck = True
-               self.smc_dlim = np.float( myconfig.get("smc","depthlim") )
-               self.smc_dvar = np.float( myconfig.get("smc","depthvar") )
+               self.smc_dlim = np.float( self.myconfig.get("smc","depthlim") )
+               self.smc_dvar = np.float( self.myconfig.get("smc","depthvar") )
 
         # ww3 metadata info
-        #latlonscale = np.float( myconfig.get("ww3meta","latlonscale") ) #
+        #latlonscale = np.float( self.myconfig.get("ww3meta","latlonscale") ) #
         #scale factor used for lat-lon dx-dy
-        #llscale     = np.float( myconfig.get("ww3meta","llcrnrscale") ) # scale factor used for lower left corner position
+        #llscale     = np.float( self.myconfig.get("ww3meta","llcrnrscale") ) # scale factor used for lower left corner position
         self.latlonscale = 1.0 # scale factor used for lat-lon dx-dy - best to hardwire this; using 1.0 will remove a lot of confusion in set-up??
         self.llscale     = 1.0 # scale factor used for lat-lon dx-dy - best to hardwire this; using 1.0 will remove a lot of confusion in set-up??
-        self.depthlim    = np.float( myconfig.get("ww3meta","lsmdepth") ) # depth at which land-sea mask is applied
-        self.moddepthmin = np.float( myconfig.get("ww3meta","mindepth") ) # minimum model depth
-        self.blockscale  = np.float( myconfig.get("ww3meta","blockscale") ) # scale factor for blocking information
+        self.depthlim    = np.float( self.myconfig.get("ww3meta","lsmdepth") ) # depth at which land-sea mask is applied
+        self.moddepthmin = np.float( self.myconfig.get("ww3meta","mindepth") ) # minimum model depth
+        self.blockscale  = np.float( self.myconfig.get("ww3meta","blockscale") ) # scale factor for blocking information
         self.mindepth_switch = False
-        if myconfig.has_option("ww3meta","setmindepth"):
-            if myconfig.get("ww3meta","setmindepth") == 'True':
+        if self.myconfig.has_option("ww3meta","setmindepth"):
+            if self.myconfig.get("ww3meta","setmindepth") == 'True':
                 self.mindepth_switch = True
 
 
@@ -122,6 +127,19 @@ class NC2SMC(object):
         d = nc.Dataset(self.NEMOfile)
 
         self.depths = d.variables[self.zname]
+
+        self.lat   = d.variables[self.yname]
+        self.lon   = d.variables[self.xname]
+
+        if self.myconfig.has_option("grid","lllon"):
+            self.llx = np.argmin(np.abs(self.lon[:] - float(self.myconfig.get("grid","lllon"))))
+        if self.myconfig.has_option("grid","lllat"):
+            self.lly = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","lllat"))))
+        if self.myconfig.has_option("grid","urlon"):
+            self.urx = np.argmin(np.abs(self.lon[:] - float(self.myconfig.get("grid","urlon"))))
+        if self.myconfig.has_option("grid","urlat"):
+            self.ury = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","urlat"))))
+
         if self.xyorder == 'True':
             self.ingrid_xpts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[0]
             self.ingrid_ypts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[1]
@@ -131,8 +149,6 @@ class NC2SMC(object):
 
         # get grid ll corner and dx,dy values from regular grid file
         if not self.rotated:
-            self.lat   = d.variables[self.yname]
-            self.lon   = d.variables[self.xname]
             if self.xyorder == 'True':
                 self.lons, self.lats = np.meshgrid(self.lon, self.lat)
                 self.ingrid_lllon = self.lons[self.lly,self.llx]
@@ -188,10 +204,11 @@ class NC2SMC(object):
 
 
     def tier(self):
-        ###############
-        # routine to tier up the data
-        # there should be at least 2 tiers in an SMC model
-        # otherwise its just a regular grid!!!
+        """
+        routine to tier up the data
+        there should be at least 2 tiers in an SMC model
+        otherwise its just a regular grid!!!
+        """
 
         smcscli = np.int(self.smcscale)
 
@@ -450,11 +467,11 @@ class NC2SMC(object):
 
     def plot(self):
         plt.pcolormesh(self.writemask)
-        if 3 <= self.smctiers:
-            plt.scatter(t3x,t3y,s=1,marker='.',color='k')
-        plt.scatter(t2x,t2y,s=1,marker='.',color='b')
-        plt.scatter(t1x,t1y,s=1,marker='.',color='r')
-#plt.colorbar()
+        #if 3 <= self.smctiers:
+        #    plt.scatter(self.t3x,self.t3y,s=1,marker='.',color='k')
+        #plt.scatter(self.t2x,self.t2y,s=1,marker='.',color='b')
+        #plt.scatter(self.t1x,self.t1y,s=1,marker='.',color='r')
+#plt.col#orbar()
         plt.show()
 
 
@@ -567,11 +584,10 @@ class NC2SMC(object):
         self.tier()
         self.create_cells_lists()
         self.sort()
+        self.plot()
         self.write_cell()
         self.write_meta()
         self.write_bnd()
 
 
-smc = NC2SMC('./SMCfromNEMO.nl')
-smc.run()
 
