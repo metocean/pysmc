@@ -1,6 +1,6 @@
 
 /*Interpolate etopo bathymetry to a coarser grid. */
-/*Uses the same mehod as gridgen matlab coade*/
+/*Uses the same mehod as gridgen matlab code*/
 
 #include <glib.h>
 #include <netcdf.h>
@@ -17,13 +17,13 @@ int main()
   int ncid;
   int status;
   double * lons_in, * lats_in;
-  int lonid, latid, zid, ndim, natt;
+  int lonid, latid, zid, ndim, natt, countid;
   size_t nlons, nlats;
   nc_type type;
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
   char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc";
-  char fnmout[50] = "../examples/nz/NZ.nc";
+  char fnmout[50] = "./glob00625.nc";
 
   // Here input file
   printf("-- Opening parent bathy %s \n", fnmin);
@@ -59,16 +59,15 @@ int main()
   
   status = nc_get_att_double(ncid, zid, "_FillValue", &fill_value_in);
   g_assert(status == NC_NOERR);
-  
+
   // Here output grid params
   int ncout;
   status = nc_create(fnmout, NC_NETCDF4, &ncout);
   g_assert(status == NC_NOERR);
-  /*double lon0 = 0, lon1 = 360, dlon = 0.125, lon;*/
-  /*double lat0 = -75, lat1 = 75, dlat = 0.125, lat;*/
-  double lon0 = 155, lon1 = 180, dlon = 1.0, lon;
-  // double lat0 = -55, lat1 = -30, dlat = 1.0, lat;
-  double lat0 = 30, lat1 = 70, dlat = 1.0, lat;
+  double lon0 = 0, lon1 = 360, dlon = 5.0, lon;
+  double lat0 = -75, lat1 = 75, dlat = 5.0, lat;
+  /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
+  /*double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;*/
   double ddlon = dlon/2.;
   double ddlat = dlat/2.;
   short fill_value = -32767;
@@ -79,7 +78,7 @@ int main()
   int nlat_out=0, nlon_out=0;
   for ( lat = lat0; lat+dlat <= lat1+dlat; lat+=dlat ){
     nlat_out++;
-       fprintf(stderr, "%i %f\n", nlat_out, lat);
+       /*fprintf(stderr, "%i %f\n", nlat_out, lat);*/
   }
   for ( lon = lon0; lon+dlon <= lon1+dlon; lon+=dlon )
     nlon_out++;
@@ -95,7 +94,7 @@ int main()
     lons_out[i++] = lon;
   
   //fprintf(stderr, "%i %i\n",nlon_out, nlat_out);
-  int latdimid_out, londimid_out, latvarid_out, lonvarid_out, zvarid_out;
+  int latdimid_out, londimid_out, latvarid_out, lonvarid_out, zvarid_out, countvarid_out;
   status = nc_def_dim (ncout, "lat", nlat_out, &latdimid_out);
   g_assert(status == NC_NOERR);
   status = nc_def_dim (ncout, "lon", nlon_out, &londimid_out);
@@ -110,8 +109,12 @@ int main()
   dimids[1] = londimid_out;
   status = nc_def_var (ncout, "z", NC_SHORT, 2, dimids, &zvarid_out);
   g_assert(status == NC_NOERR);
-  
+  status = nc_def_var (ncout, "count", NC_INT, 2, dimids, &countvarid_out);
+  g_assert(status == NC_NOERR);
   status = nc_put_att_short (ncout, zvarid_out, "_FillValue", NC_SHORT,
+			     1, &fill_value);
+  g_assert(status == NC_NOERR);
+  status = nc_put_att_int (ncout, countvarid_out, "_FillValue", NC_INT,
 			     1, &fill_value);
   g_assert(status == NC_NOERR);
   status = nc_enddef(ncout);
@@ -139,9 +142,9 @@ int main()
   }
   
   for ( ilon = 0; ilon < nlons; ilon++ ) {
-    if (  *(lons_in+ilon) < lon0-ddlon || *(lons_in+ilon) > lon1+ddlon )
+    if (  *(lons_in+ilon) < lon0-ddlon || *(lons_in+ilon) > lon1+dlon+ddlon )
       continue;
-    i = (*(lons_in+ilon)-lon0-ddlon)/dlon;
+    i = ((*(lons_in+ilon)-lon0)+ddlon)/dlon;
     if ( lon0-ddlon + i*dlon == *(lons_in+ilon) && ilon != 0 ) {
       if ( startlon[i-1] == -999 )
 	    startlon[i-1] = ilon;
@@ -153,27 +156,28 @@ int main()
       if ( startlon[i] == -999 )
 	    startlon[i] = ilon;
         countlon[i]++;
-      //fprintf(stderr, "%f %i\n",*(lons_in+ilon), i);
+      fprintf(stdout, "%f %i\n",*(lons_in+ilon), i);
     }
   }
 
 
   for ( ilat = 0; ilat < nlats; ilat++ ) {
-    if (  *(lats_in+ilat) < lat0-ddlat || *(lats_in+ilat) > lat1+ddlon )
+    if (  *(lats_in+ilat) < lat0-ddlat || *(lats_in+ilat) > lat1+dlat+ddlat )
       continue;
-    i = (*(lats_in+ilat)-lat0-ddlat)/dlat;
+    i = (*(lats_in+ilat)-lat0+ddlat)/dlat;
     if ( lat0-ddlat + i*dlat == *(lats_in+ilat) && ilat != 0 ) {
+       fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);
       if ( startlat[i-1] == -999 )
 	    startlat[i-1] = ilat;
         countlat[i-1]++;
-        fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);
+        /*fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);*/
     }
 
     if ( i < nlat_out ) {
       if ( startlat[i] == -999 )
 	    startlat[i] = ilat;
         countlat[i]++;
-        fprintf(stderr, "%f %i\n",*(lats_in+ilat), i);
+        /*fprintf(stderr, "%f %i\n",*(lats_in+ilat), i);*/
     }
   }
 
@@ -236,6 +240,9 @@ int main()
 
       status = nc_put_var1_double(ncout, zvarid_out, index,
 				    &sum);
+      g_assert(status == NC_NOERR);
+      status = nc_put_var1_int(ncout, countvarid_out, index,
+				    &num);
       g_assert(status == NC_NOERR);
     }
   }
