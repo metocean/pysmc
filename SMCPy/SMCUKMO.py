@@ -486,7 +486,7 @@ class NC2SMC(object):
             if self.smctiers == 2:
                 inp.write( ' %8d %8d %8d' %tuple([self.ttotc,self.ntc1,self.ntc2]) + '  0  0\r\n' )
             elif self.smctiers == 3:
-                inp.write( ' %8d %8d %8d %8d' %tuple([self.ttotc,self.ntc1,ntc2,self.ntc3]) + '  0\r\n' )
+                inp.write( ' %8d %8d %8d %8d' %tuple([self.ttotc,self.ntc1,self.ntc2,self.ntc3]) + '  0\r\n' )
 
             for lp in range(len(self.tier1)):
                 inp.write(' %5d %5d %2d %2d %5d' %tuple(self.tier1[lp]) + '\r\n')
@@ -509,7 +509,8 @@ class NC2SMC(object):
         gdy = self.smcscale * self.dy / self.latlonscale # values for grid_def file - based on largest smc cell size
 
         # calculate limits on CFL and 2nd order swell age - based on largest smc cell size
-        maxlat  = (self.lly / self.llscale) + np.float(self.ny) * (self.dy / self.latlonscale)
+        #maxlat  = (self.lly / self.llscale) + np.float(self.ny) * (self.dy / self.latlonscale)
+        maxlat  = max(abs(self.lat[self.lly]), abs(self.lat[self.ury]))
         minlon  = 1853.0 * 60.0 * (self.smcscale * self.dx / self.latlonscale) * np.cos(np.pi*maxlat/180.0)
         maxcg   = 1.4 * 9.81 * 25.0 / (4.0 * np.pi)
         cflstep = minlon / maxcg
@@ -524,6 +525,7 @@ class NC2SMC(object):
         with open(self.workdir+'/'+self.WW3Meta,'w') as inp:
 
             inp.write('$ Grid minimum cell dx: %.2f' %minlon +'m at latitude %.3f' %maxlat +' degrees\r\n')
+            __import__('ipdb').set_trace()
             inp.write('$ CFL minimum timestep (needs rounding down): %i' %cflstep +' seconds\r\n')
             inp.write('$ Estimated maximum swell age for 24 direction spectrum: %i' %sagemax +' seconds\r\n')
             if self.mindepth_switch:
