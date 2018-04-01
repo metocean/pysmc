@@ -11,7 +11,7 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
 
 
-int main()
+int main(int argc, char *argv[])
 {
   int i, j;
   int ncid;
@@ -22,15 +22,47 @@ int main()
   nc_type type;
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
-  char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc";
-  char fnmout[50] = "./glob00625.nc";
+
+  // Here output grid params
+  /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
+  /*double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;*/
+
+  if( argc < 9 ) {
+     printf("Too few arguments supplied.\n", argc);
+     printf("eight arguments expected.\n \
+     lon0, lon1, dlon, lat0, lat1, dlat, input_netcdf, output_netcdf \n");
+     return(0);
+  }
+  if( argc > 9 ) {
+     printf("Too many arguments supplied.\n", argc);
+     printf("eight arguments expected.\n \
+     lon0, lon1, dlon, lat0, lat1, dlat, input_netcdf, output_netcdf \n");
+     return(0);
+  }
+
+  double lon0 = atof(argv[1]), lon1 = atof(argv[2]), dlon = atof(argv[3]), lon;
+  double lat0 = atof(argv[4]), lat1 = atof(argv[5]), dlat = atof(argv[6]), lat;
+  char * fnmin = argv[7];
+  char * fnmout = argv[8];
+  double ddlon = dlon/2.;
+  double ddlat = dlat/2.;
+  short fill_value = -32767;
+  printf(" -- Grid Setup --\n");
+  printf("    lon0, lon1, dlon:  %4.2f, %4.2f, %4.2f \n", lon0, lon1, dlon);
+  printf("    lat0, lat1, dlat:  %4.2f, %4.2f, %4.2f \n", lat0, lat1, dlat);
+  printf("    input :  %s\n", fnmin);
+  printf("    output:  %s\n", fnmout);
+  printf(" ------------------\n");
 
   // Here input file
   printf("-- Opening parent bathy %s \n", fnmin);
   status = nc_open(fnmin,
-		   NC_NOWRITE, &ncid);
+           NC_NOWRITE, &ncid);
   g_assert(status == NC_NOERR);
   
+  int ncout;
+  status = nc_create(fnmout, NC_NETCDF4, &ncout);
+  g_assert(status == NC_NOERR);
   
   status = nc_inq_varid (ncid, "lon", &lonid);
   g_assert(status == NC_NOERR);
@@ -60,17 +92,6 @@ int main()
   status = nc_get_att_double(ncid, zid, "_FillValue", &fill_value_in);
   g_assert(status == NC_NOERR);
 
-  // Here output grid params
-  int ncout;
-  status = nc_create(fnmout, NC_NETCDF4, &ncout);
-  g_assert(status == NC_NOERR);
-  double lon0 = 0, lon1 = 360, dlon = 5.0, lon;
-  double lat0 = -75, lat1 = 75, dlat = 5.0, lat;
-  /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
-  /*double lat0 = -75, lat1 = 75, dlat = 0.0625, lat;*/
-  double ddlon = dlon/2.;
-  double ddlat = dlat/2.;
-  short fill_value = -32767;
 
   // Check max grid extent
   lon1 = min(360-dlon, lon1);
@@ -78,7 +99,7 @@ int main()
   int nlat_out=0, nlon_out=0;
   for ( lat = lat0; lat+dlat <= lat1+dlat; lat+=dlat ){
     nlat_out++;
-       /*fprintf(stderr, "%i %f\n", nlat_out, lat);*/
+       // fprintf(stderr, "%i %f\n", nlat_out, lat);<]
   }
   for ( lon = lon0; lon+dlon <= lon1+dlon; lon+=dlon )
     nlon_out++;
@@ -112,10 +133,10 @@ int main()
   status = nc_def_var (ncout, "count", NC_INT, 2, dimids, &countvarid_out);
   g_assert(status == NC_NOERR);
   status = nc_put_att_short (ncout, zvarid_out, "_FillValue", NC_SHORT,
-			     1, &fill_value);
+                 1, &fill_value);
   g_assert(status == NC_NOERR);
   status = nc_put_att_int (ncout, countvarid_out, "_FillValue", NC_INT,
-			     1, &fill_value);
+                 1, &fill_value);
   g_assert(status == NC_NOERR);
   status = nc_enddef(ncout);
   g_assert(status == NC_NOERR);
@@ -147,16 +168,16 @@ int main()
     i = ((*(lons_in+ilon)-lon0)+ddlon)/dlon;
     if ( lon0-ddlon + i*dlon == *(lons_in+ilon) && ilon != 0 ) {
       if ( startlon[i-1] == -999 )
-	    startlon[i-1] = ilon;
+        startlon[i-1] = ilon;
         countlon[i-1]++;
       //fprintf(stderr, "%f %i ++\n",*(lons_in+ilon), i-1);
     }
 
     if ( i < nlon_out ) {
       if ( startlon[i] == -999 )
-	    startlon[i] = ilon;
+        startlon[i] = ilon;
         countlon[i]++;
-      fprintf(stdout, "%f %i\n",*(lons_in+ilon), i);
+      //fprintf(stdout, "%f %i\n",*(lons_in+ilon), i);
     }
   }
 
@@ -166,18 +187,18 @@ int main()
       continue;
     i = (*(lats_in+ilat)-lat0+ddlat)/dlat;
     if ( lat0-ddlat + i*dlat == *(lats_in+ilat) && ilat != 0 ) {
-       fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);
+       // fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);
       if ( startlat[i-1] == -999 )
-	    startlat[i-1] = ilat;
+        startlat[i-1] = ilat;
         countlat[i-1]++;
-        /*fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);*/
+        // fprintf(stderr, "%f %i ++\n",*(lats_in+ilat), i-1);<]
     }
 
     if ( i < nlat_out ) {
       if ( startlat[i] == -999 )
-	    startlat[i] = ilat;
+        startlat[i] = ilat;
         countlat[i]++;
-        /*fprintf(stderr, "%f %i\n",*(lats_in+ilat), i);*/
+        // fprintf(stderr, "%f %i\n",*(lats_in+ilat), i);<]
     }
   }
 
@@ -206,12 +227,12 @@ int main()
       index[1] = ilon;
 
       if ( start[0] == -999 || start[1] == -999 || count[0] == 0 || count[1] == 0 ) {
-	status = nc_put_var1_short(ncout, zvarid_out, index,
-				    &fill_value);
-	g_assert(status == NC_NOERR);
-	continue;
+    status = nc_put_var1_short(ncout, zvarid_out, index,
+                    &fill_value);
+    g_assert(status == NC_NOERR);
+    continue;
       }
-	
+    
       
       double data[count[0]][count[1]];
       status = nc_get_vara_double(ncid, zid, start, count, *data);
@@ -221,28 +242,28 @@ int main()
       num = 0;
 
       for ( i = 0; i < count[0]; i++ ) {
-	    for ( j = 0; j < count[1]; j++ ) {
-	    /* Here criteria to change */
-	      if ( data[i][j] < 0 && data[i][j] != fill_value_in ) {
-	      sum += data[i][j];
-	      num++;
-	  }
-	}
+        for ( j = 0; j < count[1]; j++ ) {
+        // Here criteria to change //
+          if ( data[i][j] < 0 && data[i][j] != fill_value_in ) {
+          sum += data[i][j];
+          num++;
+      }
+    }
       }
       if ( num == 0 )
-	sum = fill_value;
+    sum = fill_value;
       else
-	sum /= num;
+    sum /= num;
 
       if ( ilon == 0 && (((int)(100*ilat/nlat_out) % 10) == 0) ) {
             printf("---- Processed %i of %i rows... \n", ilat, nlat_out);
       }
 
       status = nc_put_var1_double(ncout, zvarid_out, index,
-				    &sum);
+                    &sum);
       g_assert(status == NC_NOERR);
       status = nc_put_var1_int(ncout, countvarid_out, index,
-				    &num);
+                    &num);
       g_assert(status == NC_NOERR);
     }
   }
