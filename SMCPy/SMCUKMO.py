@@ -95,7 +95,6 @@ class NC2SMC(object):
         else:
             self.ury = None
 
-
         # conventions for reading file
         self.xname = self.myconfig.get("conventions","xname") #name for longitude variable
         self.yname = self.myconfig.get("conventions","yname") #name for latitude variable
@@ -155,7 +154,14 @@ class NC2SMC(object):
             self.urx = np.argmin(np.abs(self.lon[:] - float(self.myconfig.get("grid","urlon"))))
         if self.myconfig.has_option("grid","urlat"):
             self.ury = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","urlat"))))
-
+        if self.myconfig.has_option("grid","mergenlat"):
+            self.mergeny = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergenlat"))))
+        else:
+            self.mergeny = None
+        if self.myconfig.has_option("grid","mergeslat"):
+            self.mergesy = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergeslat"))))
+        else:
+            self.mergesy = None
         if self.xyorder == 'True':
             self.ingrid_xpts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[0]
             self.ingrid_ypts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[1]
@@ -389,45 +395,49 @@ class NC2SMC(object):
 
         if 3 <= self.smctiers: # three tiers
             for lpy3 in range(0,self.ny,4):
-        	for lpx3 in range(0,self.nx,4):
+                if lpy3 >= self.mergeny or lpy3 <= self.mergesy:
+                    step = 2
+                else:
+                    step = 1
+        	for lpx3 in range(0,self.nx,4*step):
 
-                    if np.all( self.writemask[lpy3:lpy3+4,lpx3:lpx3+4]==3 ) :
+                    if np.all( self.writemask[lpy3:lpy3+4,lpx3:lpx3+4*step]==3 ) :
 
-                	mydepth = np.mean( self.writedepths[lpy3:lpy3+4,lpx3:lpx3+4] )
+                	mydepth = np.mean( self.writedepths[lpy3:lpy3+4,lpx3:lpx3+4*step] )
                         if mydepth != 'masked':
-                            self.tier3.append( [lpx3,lpy3,4,4,mydepth*-1] )
+                            self.tier3.append( [lpx3,lpy3,4*step,4,mydepth*-1] )
                             self.t3x.append(lpx3)
                             self.t3y.append(lpy3)
 
                     else:
 
                 	for lp2y in range(0,2):
-                            for lp2x in range(0,2):
+                            for lp2x in range(0, 2):
 
-                        	myx2 = lpx3+2*lp2x
+                        	myx2 = lpx3+2*lp2x*step
                         	myy2 = lpy3+2*lp2y
 
-                		if np.all( self.writemask[myy2:myy2+2,myx2:myx2+2] == 2 ):
+                		if np.all( self.writemask[myy2:myy2+2,myx2:myx2+2*step] == 2 ):
 
-                		    mydepth = np.mean( self.writedepths[myy2:myy2+2,myx2:myx2+2] )
+                		    mydepth = np.mean( self.writedepths[myy2:myy2+2,myx2:myx2+2*step] )
                                     if mydepth != 'masked':
-                                        self.tier2.append( [myx2,myy2,2,2,mydepth*-1] )
+                                        self.tier2.append( [myx2,myy2,2*step,2,mydepth*-1] )
                                         self.t2x.append(myx2)
                                         self.t2y.append(myy2)
 
                         	else:
 
                 		    for lpy1 in range(0,2):
-                        		for lpx1 in range(0,2):
+                        		for lpx1 in range(0, 2):
 
-                        		    myx1 = myx2+lpx1
+                        		    myx1 = myx2+lpx1*step
                         		    myy1 = myy2+lpy1
 
-                			    if self.writemask[myy1,myx1] == 1:
+                                            if np.all(self.writemask[myy1,myx1:myx1+1*step]) == 1:
 
-                				mydepth = self.writedepths[myy1,myx1]
+                                                mydepth = np.mean(self.writedepths[myy1,myx1:myx1+1*step])
                                                 if mydepth != 'masked':
-                                                    self.tier1.append( [myx1,myy1,1,1,mydepth*-1] )
+                                                    self.tier1.append( [myx1,myy1,1*step,1,mydepth*-1] )
                                                     self.t1x.append(myx1)
                                                     self.t1y.append(myy1)
         else: # two tiers
@@ -489,9 +499,9 @@ class NC2SMC(object):
         plt.scatter(self.t1x,self.t1y,s=1,marker='.',color='r')
         plt.colorbar(m)
 
-    def plot_patches(self, filled=False):
+    def plot_patches(self, filled=False, proj=ccrs.Robinson(central_longitude=180.)):
         plot_patches(self.NEMOfile, self.cellfile, [self.ingrid_lllon,
-            self.ingrid_lllat], filled=True)
+            self.ingrid_lllat], filled=True, proj=proj)
 
 
     def write_cell(self):
@@ -617,12 +627,11 @@ class NC2SMC(object):
         self.write_cell()
         self.write_meta()
         self.write_bnd()
-        self.plot_patches(filled=True)
-
-
+        # self.plot_patches(filled=True)
 
 
 def plot_patches(ncbath, smcFnm, refp, filled=False, proj=ccrs.PlateCarree(central_longitude=180.)):
+
     plot_kws = dict(txtloc=(0.25, 0.88), dotsize=0.01,
                     cax_kws=dict(width='2.5%', height='90%', borderpad=.5,
                                  loc=6, bbox_to_anchor=(0.975, 0., 1, 1)),
@@ -632,7 +641,7 @@ def plot_patches(ncbath, smcFnm, refp, filled=False, proj=ccrs.PlateCarree(centr
     bathy = smc.NCBathy(ncbath, debug=1)
     glbSMC = smc.UnSMC(smcFnm, dlon=bathy.dlon, dlat=bathy.dlat,
                        refp=refp)
-    fig, ax = smc.CartopyMap(proj, coast=True, gridbase=45, figsize=(6, 4))
+    fig, ax = smc.CartopyMap(proj, coast=True, gridbase=45, figsize=(12, 8))
     glbSMC.genPlot(filled=filled, ax=ax, plot_var='depth', center=True, **plot_kws)
 
 
