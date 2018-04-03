@@ -1,11 +1,24 @@
 #!/usr/bin/env python2.7
 
+# -*- coding: utf-8 -*-
+# File              : /home/tdurrant/source/pysmc/SMCPy/SMCUKMO.py
+# Author            : Tom Durrant <t.durrant@metocean.co.nz>
+# Date              : 02.04.2018
+# Last Modified Date: 02.04.2018
+# Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4 as nc
 import ConfigParser
 import xarray
 import os
+
+from SMCPy.SMCGrid import genCellSides
+import cartopy.crs as ccrs
+from SMCPy import SMCGrid as smc
+
 
 ## program to generate SMC grid from NEMO netCDF bathy file
 
@@ -70,11 +83,14 @@ class NC2SMC(object):
             self.lly = np.int( self.myconfig.get("grid","lly") )
         else:
             self.lly = 0
-        if self.myconfig.has_option("grid","urx"):
+        if self.myconfig.has_option("grid","urx") and self.myconfig.has_option("grid", "urlon"):
+            raise Exception("Can only respect urx or urlon, remove one from config")
             self.urx = np.int( self.myconfig.get("grid","urx") ) + 1
         else:
             self.urx = None
-        if self.myconfig.has_option("grid","ury"):
+        if self.myconfig.has_option("grid","ury") and self.myconfig.has_option("grid", "urlat"):
+            raise Exception("Can only respect ury or urlon, remove one from config")
+        if self.myconfig.has_option("grid","ury") :
             self.ury = np.int( self.myconfig.get("grid","ury") ) + 1
         else:
             self.ury = None
@@ -465,14 +481,17 @@ class NC2SMC(object):
             self.ttotc = self.ttotc + self.ntc3
 
 
-    def plot(self):
+    def plot_scatter(self):
         m = plt.pcolormesh(self.writemask)
         if 3 <= self.smctiers:
             plt.scatter(self.t3x,self.t3y,s=1,marker='.',color='k')
         plt.scatter(self.t2x,self.t2y,s=1,marker='.',color='b')
         plt.scatter(self.t1x,self.t1y,s=1,marker='.',color='r')
         plt.colorbar(m)
-        plt.show()
+
+    def plot_patches(self, filled=False):
+        plot_patches(self.NEMOfile, self.cellfile, [self.ingrid_lllon,
+            self.ingrid_lllat], filled=True)
 
 
     def write_cell(self):
@@ -481,7 +500,8 @@ class NC2SMC(object):
         if not os.path.isdir(self.workdir):
             os.makedirs(self.workdir)
         print 'Writing cell info to '+self.workdir+'/'+self.WW3Cels
-        with open(self.workdir+'/'+self.WW3Cels,'w') as inp:
+        self.cellfile = self.workdir+'/'+self.WW3Cels
+        with open(self.cellfile,'w') as inp:
 
             if self.smctiers == 2:
                 inp.write( ' %8d %8d %8d' %tuple([self.ttotc,self.ntc1,self.ntc2]) + '  0  0\r\n' )
@@ -510,7 +530,8 @@ class NC2SMC(object):
 
         # calculate limits on CFL and 2nd order swell age - based on largest smc cell size
         #maxlat  = (self.lly / self.llscale) + np.float(self.ny) * (self.dy / self.latlonscale)
-        maxlat  = max(abs(self.lat[self.lly]), abs(self.lat[self.ury]))
+        ury = self.ury or self.lat.shape[0] - 1 # TODO Fix this to work with xyorder options
+        maxlat  = max(abs(self.lat[self.lly]), abs(self.lat[ury]))
         minlon  = 1853.0 * 60.0 * (self.smcscale * self.dx / self.latlonscale) * np.cos(np.pi*maxlat/180.0)
         maxcg   = 1.4 * 9.81 * 25.0 / (4.0 * np.pi)
         cflstep = minlon / maxcg
@@ -525,7 +546,6 @@ class NC2SMC(object):
         with open(self.workdir+'/'+self.WW3Meta,'w') as inp:
 
             inp.write('$ Grid minimum cell dx: %.2f' %minlon +'m at latitude %.3f' %maxlat +' degrees\r\n')
-            __import__('ipdb').set_trace()
             inp.write('$ CFL minimum timestep (needs rounding down): %i' %cflstep +' seconds\r\n')
             inp.write('$ Estimated maximum swell age for 24 direction spectrum: %i' %sagemax +' seconds\r\n')
             if self.mindepth_switch:
@@ -579,6 +599,14 @@ class NC2SMC(object):
         	writeBP( self.bplist[lp], inpbp, rotated=self.rotated )
             inpbp.close()
 
+    # TODO implement this
+    #def generte_face_arrays(self):
+    # genCellSides(bathy_obj.gid.upper(),
+                 # bathy_obj.ww3_grid['NY']*4.,
+                 # bathy_obj.ww3_grid['NX']*4.,
+                 # bathy_obj.ww3_grid['DY']/4.,
+                 # bathy_obj.ww3_grid['DX']/4.)
+
     def run(self):
         self.read_config()
         self.read_nc()
@@ -586,10 +614,25 @@ class NC2SMC(object):
         self.tier()
         self.create_cells_lists()
         self.sort()
-        self.plot()
         self.write_cell()
         self.write_meta()
         self.write_bnd()
+        self.plot_patches(filled=True)
 
+
+
+
+def plot_patches(ncbath, smcFnm, refp, filled=False, proj=ccrs.PlateCarree(central_longitude=180.)):
+    plot_kws = dict(txtloc=(0.25, 0.88), dotsize=0.01,
+                    cax_kws=dict(width='2.5%', height='90%', borderpad=.5,
+                                 loc=6, bbox_to_anchor=(0.975, 0., 1, 1)),
+                    txtSize=5, cb_kws=dict(orientation='vertical'),
+                    cbtxtSize=5)
+
+    bathy = smc.NCBathy(ncbath, debug=1)
+    glbSMC = smc.UnSMC(smcFnm, dlon=bathy.dlon, dlat=bathy.dlat,
+                       refp=refp)
+    fig, ax = smc.CartopyMap(proj, coast=True, gridbase=45, figsize=(6, 4))
+    glbSMC.genPlot(filled=filled, ax=ax, plot_var='depth', center=True, **plot_kws)
 
 
