@@ -1,23 +1,9 @@
 [files]
-OutputDir = ./out
-# NEMOfile =. /source/gridgen/noaa/reference_data/etopo2.nc
-#NEMOfile = ../examples/glob05-3/glb05-3.nc
-NEMOfile = ../examples/glb2d/glb2d.nc
-#NEMOfile = ../examples/nz/NZ.nc
+OutputDir = ./outnz
+NEMOfile = ../bathy/nz-etopo1-0.25.nc
 
 [grid]
 Rotated = False
-rlat = 37.5
-rlon = 177.5
-dx = 1.0
-dy = 1.0
-lllon = 100
-#lllon = 100
-urlon = 180
-lllat = -50
-urlat = -10
-#lllon = -8.0
-#lllat = -7.0
 
 [conventions]
 xname = lon
