@@ -71,6 +71,7 @@ class NC2SMC(object):
                 self.dy = np.float( self.myconfig.get("grid","dy") )
 
         # grid constraints for limited areas
+        self.gid = self.myconfig.get("grid","gid") #grid id
         if self.myconfig.has_option("grid","llx") and self.myconfig.has_option("grid","lllon"):
             raise Exception("Can only respect llx or lllon, remove one from config")
         if self.myconfig.has_option("grid","llx"):
@@ -109,10 +110,10 @@ class NC2SMC(object):
             self.smctiers = np.int( self.myconfig.get("smc","smctiers") ) #how many tiers in the smc refinement
             self.smcscale = 2.0 ** ( self.smctiers - 1.0 )
             # smc output file names and info for WW3Meta
-            self.WW3Cels = 'ww3Cels.dat'
-            self.WW3BPs  = 'ww3BPlist.txt'
-            self.WW3Meta  = 'ww3meta_SMC.txt'
-            self.WW3GDef  = 'ww3.SMC_grid_def'
+            self.WW3Cels = '%sCels.dat' % self.gid.upper()
+            self.WW3BPs  = '%sBPlist.txt' % self.gid.upper()
+            self.WW3Meta  = '%s_META.txt' % self.gid.upper()
+            self.WW3GDef  = '%s_grid.inp' % self.gid.upper()
             self.unitbathy = 30
             self.idlabathy = 3
             self.idfmbathy = 1
@@ -154,13 +155,11 @@ class NC2SMC(object):
             self.urx = np.argmin(np.abs(self.lon[:] - float(self.myconfig.get("grid","urlon"))))
         if self.myconfig.has_option("grid","urlat"):
             self.ury = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","urlat"))))
-        if self.myconfig.has_option("grid","mergenlat"):
-            self.mergeny = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergenlat"))))
+        if self.myconfig.has_option("grid","mergelat"):
+            self.mergeny = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergelat"))))
+            self.mergesy = np.argmin(np.abs(self.lat[:] + float(self.myconfig.get("grid","mergelat"))))
         else:
             self.mergeny = None
-        if self.myconfig.has_option("grid","mergeslat"):
-            self.mergesy = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergeslat"))))
-        else:
             self.mergesy = None
         if self.xyorder == 'True':
             self.ingrid_xpts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[0]
@@ -395,13 +394,16 @@ class NC2SMC(object):
 
         if 3 <= self.smctiers: # three tiers
             for lpy3 in range(0,self.ny,4):
-                if self.mergeny or self.mergesy:
-                    if lpy3 >= self.mergeny or lpy3 <= self.mergesy:
+                if (self.mergeny != None):
+                    if lpy3  <= self.mergesy:
+                        step = 2
+                    elif lpy3 >= self.mergeny:
                         step = 2
                     else:
                         step = 1
                 else:
                     step = 1
+                print step
         	for lpx3 in range(0,self.nx,4*step):
 
                     if np.all( self.writemask[lpy3:lpy3+4,lpx3:lpx3+4*step]==3 ) :
