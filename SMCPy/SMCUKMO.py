@@ -395,8 +395,11 @@ class NC2SMC(object):
 
         if 3 <= self.smctiers: # three tiers
             for lpy3 in range(0,self.ny,4):
-                if lpy3 >= self.mergeny or lpy3 <= self.mergesy:
-                    step = 2
+                if self.mergeny or self.mergesy:
+                    if lpy3 >= self.mergeny or lpy3 <= self.mergesy:
+                        step = 2
+                    else:
+                        step = 1
                 else:
                     step = 1
         	for lpx3 in range(0,self.nx,4*step):
