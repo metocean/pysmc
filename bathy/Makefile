@@ -28,7 +28,12 @@ run: etopo_interp_centred.exe
 	./etopo_interp_centred.exe 0 360 2 -70 70 2 in.nc out.nc
 
 glob: etopo_interp_centred.exe
-	./etopo_interp_centred.exe 0 360 $(resolution) -74 74 $(resolution) /source/gridgen/noaa/reference_data/$(bathy_src).nc glob-$(bathy_src)-$(resolution).nc  
+	./etopo_interp_centred.exe 0 360 $(resolution) -75 75 $(resolution) /source/gridgen/noaa/reference_data/$(bathy_src).nc glob-$(bathy_src)-$(resolution).nc  
+
+nz: etopo_interp_centred.exe
+	./etopo_interp_centred.exe 165 180 $(resolution) -50 -30 $(resolution) /source/gridgen/noaa/reference_data/$(bathy_src).nc nz-$(bathy_src)-$(resolution).nc  
+	ncview nz-$(bathy_src)-$(resolution).nc
+
 
 TAGS: $(SRCS)
 	etags $(SRCS)

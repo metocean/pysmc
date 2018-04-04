@@ -156,8 +156,9 @@ class NC2SMC(object):
         if self.myconfig.has_option("grid","urlat"):
             self.ury = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","urlat"))))
         if self.myconfig.has_option("grid","mergelat"):
-            self.mergeny = np.argmin(np.abs(self.lat[:] - float(self.myconfig.get("grid","mergelat"))))
-            self.mergesy = np.argmin(np.abs(self.lat[:] + float(self.myconfig.get("grid","mergelat"))))
+            mergelat = float(self.myconfig.get("grid","mergelat"))
+            self.mergeny = self.ury - np.argmin(np.abs(self.lat[:] - mergelat))
+            self.mergesy = np.argmin(np.abs(self.lat[:] + mergelat)) - self.lly
         else:
             self.mergeny = None
             self.mergesy = None
@@ -395,9 +396,9 @@ class NC2SMC(object):
         if 3 <= self.smctiers: # three tiers
             for lpy3 in range(0,self.ny,4):
                 if (self.mergeny != None):
-                    if lpy3  <= self.mergesy:
+                    if lpy3  < self.mergesy:
                         step = 2
-                    elif lpy3 >= self.mergeny:
+                    elif lpy3 >= self.ny - self.mergeny:
                         step = 2
                     else:
                         step = 1
