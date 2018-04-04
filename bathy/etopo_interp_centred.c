@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
   nc_type type;
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
+  double cut_off = 0.1;
 
   // Here output grid params
   /*double lon0 = 0, lon1 = 360, dlon = 0.0625, lon;*/
@@ -213,7 +214,7 @@ int main(int argc, char *argv[])
   size_t start[2];
   size_t count[2];
   double sum;
-  int num;
+  int num, total;
   size_t index[2];
   for ( ilat = 0; ilat < nlat_out; ilat++ ) {
     start[0] = startlat[ilat];
@@ -240,9 +241,11 @@ int main(int argc, char *argv[])
       
       sum = 0.;
       num = 0;
+      total = 0;
 
       for ( i = 0; i < count[0]; i++ ) {
         for ( j = 0; j < count[1]; j++ ) {
+          total++;
         // Here criteria to change //
           if ( data[i][j] < 0 && data[i][j] != fill_value_in ) {
           sum += data[i][j];
@@ -251,6 +254,8 @@ int main(int argc, char *argv[])
     }
       }
       if ( num == 0 )
+    sum = fill_value;
+      else if ( num/(float) total < (1-cut_off) )
     sum = fill_value;
       else
     sum /= num;
