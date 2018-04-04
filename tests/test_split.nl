@@ -11,8 +11,7 @@ NEMOfile = ../bathy/glob-etopo1-1.nc
 urlat = -30
 lllon = 100
 urlon = 220
-mergenlat=60
-mergeslat=-60
+mergelat=60
 
 [conventions]
 xname = lon
