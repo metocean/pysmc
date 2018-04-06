@@ -19,7 +19,6 @@ from SMCPy.SMCGrid import genCellSides
 import cartopy.crs as ccrs
 from SMCPy import SMCGrid as smc
 
-
 ## program to generate SMC grid from NEMO netCDF bathy file
 
 def writeBP( bcs, inpbp, rotated=False ):
@@ -110,7 +109,11 @@ class NC2SMC(object):
             self.smctiers = np.int( self.myconfig.get("smc","smctiers") ) #how many tiers in the smc refinement
             self.smcscale = 2.0 ** ( self.smctiers - 1.0 )
             # smc output file names and info for WW3Meta
-            self.WW3Cels = '%sCels.dat' % self.gid.upper()
+            self.WW3Cels = '%sCell.dat' % self.gid.upper()
+            # Note that SMC not support subgridscale blocking for multilevel
+            # SMC grids. However, a file is needed for consistency. Hence a
+            # dummy file with all zero blocking is created here.
+            self.WW3Obs = '%sObs.dat' % self.gid.upper()
             self.WW3BPs  = '%sBPlist.txt' % self.gid.upper()
             self.WW3Meta  = '%s_META.txt' % self.gid.upper()
             self.WW3GDef  = '%s_grid.inp' % self.gid.upper()
@@ -518,7 +521,6 @@ class NC2SMC(object):
         print 'Writing cell info to '+self.workdir+'/'+self.WW3Cels
         self.cellfile = self.workdir+'/'+self.WW3Cels
         with open(self.cellfile,'w') as inp:
-
             if self.smctiers == 2:
                 inp.write( ' %8d %8d %8d' %tuple([self.ttotc,self.ntc1,self.ntc2]) + '  0  0\r\n' )
             elif self.smctiers == 3:
@@ -534,7 +536,13 @@ class NC2SMC(object):
                 for lp in range(len(self.tier3)):
                     inp.write(' %5d %5d %2d %2d %5d' %tuple(self.tier3[lp]) + '\r\n')
 
-            inp.close()
+        print 'Writing dummy obstuction info to '+self.workdir+'/'+self.WW3Obs
+        self.obsfile = self.workdir+'/'+self.WW3Obs
+
+        with open(self.obsfile,'w') as inp:
+            inp.write( ' %8d 2\r\n' % self.ttotc )
+            for lp in range(self.ttotc):
+                inp.write('   0   0 \r\n')
 
 
     def write_meta(self):
@@ -615,13 +623,8 @@ class NC2SMC(object):
         	writeBP( self.bplist[lp], inpbp, rotated=self.rotated )
             inpbp.close()
 
-    # TODO implement this
-    #def generte_face_arrays(self):
-    # genCellSides(bathy_obj.gid.upper(),
-                 # bathy_obj.ww3_grid['NY']*4.,
-                 # bathy_obj.ww3_grid['NX']*4.,
-                 # bathy_obj.ww3_grid['DY']/4.,
-                 # bathy_obj.ww3_grid['DX']/4.)
+    def generate_face_arrays(self):
+        genCellSides(self.gid.upper(), self.ny, self.nx, self.dy, self.dx)
 
     def run(self):
         self.read_config()
@@ -633,6 +636,7 @@ class NC2SMC(object):
         self.write_cell()
         self.write_meta()
         self.write_bnd()
+        self.generate_face_arrays()
         # self.plot_patches(filled=True)
 
 
