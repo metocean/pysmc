@@ -235,7 +235,7 @@ class NC2SMC(object):
         otherwise its just a regular grid!!!
         """
 
-        smcscli = np.int(self.smcscale)
+        smcscli = np.int(self.smcscale) * 2
 
         # 1st tier establish locations next to land
         print ''
@@ -300,16 +300,25 @@ class NC2SMC(object):
             print ''
             print 'Analysing Tier 3'
             for lpy in range(0,self.ny,4):
-        	for lpx in range(0,self.nx,4):
+                if (self.mergeny != None):
+                    if lpy  < self.mergesy:
+                        step = 8
+                    elif lpy >= self.ny - self.mergeny:
+                        step = 8
+                    else:
+                        step = 4
+                else:
+                    step = 4
+        	for lpx in range(0,self.nx,step):
 
                     if np.mod(lpx,200) == 0 and np.mod(lpy,200) == 0:
                 	print 'Analysed %d' %lpx + ' cells in row %d' %lpy
 
                     # ensure we never go straight from tier 3 to tier 1 by searching over a +/-1 box
-                    if lpy-1 >= 0 and lpy+5 < self.ny and lpx-1 >=0 and lpx+5 < self.nx:
+                    if lpy-1 >= 0 and lpy+4+1 < self.ny and lpx-1 >=0 and lpx+step+1 < self.nx:
 
-                	if np.all( self.writemask[lpy-1:lpy+5,lpx-1:lpx+5]>=2 ):
-                	    self.writemask[lpy:lpy+4,lpx:lpx+4] = 3
+                	if np.all( self.writemask[lpy-1:lpy+4+1,lpx-1:lpx+step+1]>=2 ):
+                	    self.writemask[lpy:lpy+4,lpx:lpx+step] = 3
                 	#else:
                 	#    print 'rejecting'
 
@@ -407,7 +416,6 @@ class NC2SMC(object):
                         step = 1
                 else:
                     step = 1
-                print step
         	for lpx3 in range(0,self.nx,4*step):
 
                     if np.all( self.writemask[lpy3:lpy3+4,lpx3:lpx3+4*step]==3 ) :
@@ -636,7 +644,8 @@ class NC2SMC(object):
         self.write_cell()
         self.write_meta()
         self.write_bnd()
-        self.generate_face_arrays()
+        self.plot_scatter()
+        # self.generate_face_arrays()
         # self.plot_patches(filled=True)
 
 

@@ -8,9 +8,10 @@ OutputDir = ./out025
 NEMOfile = ../bathy/glob-etopo1-1.nc
 
 [grid]
+gid = split
 urlat = -30
-lllon = 100
-urlon = 220
+lllon = 190
+urlon = 320
 mergelat=60
 
 [conventions]
