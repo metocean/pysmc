@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-from SMCPy.SMCUKMO import NC2SMC
+from SMCPy.Grid import NC2SMC
 
 smc = NC2SMC('./test_global.nl')
 smc.run()

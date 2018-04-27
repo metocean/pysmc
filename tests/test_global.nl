@@ -1,12 +1,12 @@
 [files]
-OutputDir = ./outnz
+OutputDir = ./
 #NEMOfile = ../bathy/nz-etopo1-0.25.nc
 #NEMOfile = ../bathy/glob-etopo1-3.nc
-NEMOfile = ../bathy/glob-etopo1-3.nc
+NEMOfile = ../bathy/glob-etopo1-1.nc
 
 [grid]
 Rotated = False
-gid = glob3-3
+gid = glob4-3
 urlat=71
 lllat=-71
 mergelat=60

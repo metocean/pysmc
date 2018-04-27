@@ -644,8 +644,8 @@ class NC2SMC(object):
         self.write_cell()
         self.write_meta()
         self.write_bnd()
-        self.plot_scatter()
-        # self.generate_face_arrays()
+        # self.plot_scatter()
+        self.generate_face_arrays()
         # self.plot_patches(filled=True)
 
 
