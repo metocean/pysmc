@@ -1,14 +1,14 @@
 #!/usr/bin/env python2.7
-
 # -*- coding: utf-8 -*-
-# File              : /home/tdurrant/source/pysmc/SMCPy/SMCUKMO.py
+# File              : Grid.py
 # Author            : Tom Durrant <t.durrant@metocean.co.nz>
 # Date              : 02.04.2018
-# Last Modified Date: 02.04.2018
+# Last Modified Date: 27.04.2018
 # Last Modified By  : Tom Durrant <t.durrant@metocean.co.nz>
 
 
 import numpy as np
+import numpy.ma as ma
 import matplotlib.pyplot as plt
 import netCDF4 as nc
 import ConfigParser
@@ -144,11 +144,14 @@ class NC2SMC(object):
     def read_nc(self):
         # read in the NEMO file data and get x-y shape values
         d = nc.Dataset(self.NEMOfile)
-
-        self.depths = d.variables[self.zname]
-
+        self.depth = d.variables[self.zname]
         self.lat   = d.variables[self.yname]
         self.lon   = d.variables[self.xname]
+        self.lons, self.lats = np.meshgrid(self.lon, self.lat)
+        self.lats, self.lons = np.meshgrid(self.lat, self.lon)
+        self._set_grid_paramaters()
+
+    def _set_grid_paramaters(self):
 
         if self.myconfig.has_option("grid","lllon"):
             self.llx = np.argmin(np.abs(self.lon[:] - float(self.myconfig.get("grid","lllon"))))
@@ -166,27 +169,24 @@ class NC2SMC(object):
             self.mergeny = None
             self.mergesy = None
         if self.xyorder == 'True':
-            self.ingrid_xpts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[0]
-            self.ingrid_ypts = np.shape(self.depths[self.llx:self.urx,self.lly:self.ury])[1]
+            self.ingrid_xpts = np.shape(self.depth[self.llx:self.urx,self.lly:self.ury])[0]
+            self.ingrid_ypts = np.shape(self.depth[self.llx:self.urx,self.lly:self.ury])[1]
         else:
-            self.ingrid_xpts = np.shape(self.depths[self.lly:self.ury,self.llx:self.urx])[1]
-            self.ingrid_ypts = np.shape(self.depths[self.lly:self.ury,self.llx:self.urx])[0]
+            self.ingrid_xpts = np.shape(self.depth[self.lly:self.ury,self.llx:self.urx])[1]
+            self.ingrid_ypts = np.shape(self.depth[self.lly:self.ury,self.llx:self.urx])[0]
 
         # get grid ll corner and dx,dy values from regular grid file
         if not self.rotated:
             if self.xyorder == 'True':
-                self.lons, self.lats = np.meshgrid(self.lon, self.lat)
                 self.ingrid_lllon = self.lons[self.lly,self.llx]
                 self.ingrid_lllat = self.lats[self.lly,self.llx]
                 self.dx = lons[self.lly,self.llx+1] - self.ingrid_lllon
                 self.dy = lons[self.lly+1,self.llx] - self.ingrid_lllat
             else:
-                self.lats, self.lons = np.meshgrid(self.lat, self.lon)
                 self.ingrid_lllon = self.lons[self.llx,self.lly]
                 self.ingrid_lllat = self.lats[self.llx,self.lly]
                 self.dx = self.lons[self.llx+1,self.lly] - self.ingrid_lllon
                 self.dy = self.lats[self.llx,self.lly+1] - self.ingrid_lllat
-
 
     def extract_region(self):
         # sort out the number of x and y cells to actually use - factor of smcscale
@@ -209,11 +209,11 @@ class NC2SMC(object):
         print 'Located SMC grid ne corner cell center at:',self.urlon,self.urlat,' this gets used for the boundary point metadata'
 
 
-        # establish writedepths array using (lat,lon) convention
+        # establish writedepth array using (lat,lon) convention
         if self.xyorder == True:
-            self.writedepths = np.rot90(self.depths[self.llx:self.llx+self.use_xpts,self.lly:self.lly+self.use_ypts]) * self.zscale #need to check if this line works properly!
+            self.writedepths = np.rot90(self.depth[self.llx:self.llx+self.use_xpts,self.lly:self.lly+self.use_ypts]) * self.zscale #need to check if this line works properly!
         else:
-            self.writedepths = (self.depths[self.lly:self.lly+self.use_ypts,self.llx:self.llx+self.use_xpts] * self.zscale).filled(999)
+            self.writedepths = (self.depth[self.lly:self.lly+self.use_ypts,self.llx:self.llx+self.use_xpts] * self.zscale).filled(999)
         print 'Dimensions of grid for analysis: ',np.shape(self.writedepths)
 
         self.writedepths[self.writedepths>=0] = 999
@@ -566,6 +566,7 @@ class NC2SMC(object):
         maxlat  = max(abs(self.lat[self.lly]), abs(self.lat[ury]))
         minlon  = 1853.0 * 60.0 * (self.smcscale * self.dx / self.latlonscale) * np.cos(np.pi*maxlat/180.0)
         maxcg   = 1.4 * 9.81 * 25.0 / (4.0 * np.pi)
+        #cflstep = minlon / maxcg
         cflstep = minlon / maxcg
 
         sagemax = 0.5 * minlon**2.0 * 12.0 / ((2.0*np.pi*maxcg/24.0)**2.0 * cflstep)
@@ -645,8 +646,29 @@ class NC2SMC(object):
         self.write_meta()
         self.write_bnd()
         # self.plot_scatter()
-        self.generate_face_arrays()
+        # self.generate_face_arrays()
         # self.plot_patches(filled=True)
+
+class GRIDGEN2SMC(NC2SMC):
+
+    def __init(self, *args, **kwargs):
+        super(GRIDGEN2SMC, self).__init__(*args, **kwargs)
+
+    def read_nc(self):
+        # read in the NEMO file data and get x-y shape values
+        from scipy.io import loadmat
+        matDict = loadmat(self.NEMOfile, squeeze_me=True)
+        keys = ['dlon', 'dlat', 'lon', 'lat', 'depth', 'm3', 'm4', 'mask_map',
+                'sx1', 'sy1']
+        for key in keys:
+            setattr(self, key, matDict[key])
+        del keys, matDict
+        self.lons = self.lon.transpose()
+        self.lats = self.lat.transpose()
+        self.lon = self.lons[:,0]
+        self.lat = self.lats[0,:]
+        self.depth = ma.masked_array(self.depth)
+        self._set_grid_paramaters()
 
 
 def plot_patches(ncbath, smcFnm, refp, filled=False, proj=ccrs.PlateCarree(central_longitude=180.)):
@@ -657,7 +679,8 @@ def plot_patches(ncbath, smcFnm, refp, filled=False, proj=ccrs.PlateCarree(centr
                     txtSize=5, cb_kws=dict(orientation='vertical'),
                     cbtxtSize=5)
 
-    bathy = smc.NCBathy(ncbath, debug=1)
+    # bathy = smc.NCBathy(ncbath, debug=1)
+    bathy = smc.MatBathy(ncbath, debug=1)
     glbSMC = smc.UnSMC(smcFnm, dlon=bathy.dlon, dlat=bathy.dlat,
                        refp=refp)
     fig, ax = smc.CartopyMap(proj, coast=True, gridbase=45, figsize=(12, 8))
