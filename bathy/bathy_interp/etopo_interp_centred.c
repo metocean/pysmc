@@ -430,6 +430,12 @@ PyObject * bathy_interp_interface (PyObject *self,
 
 int main ()
 {
+  return _bathy_interpolate("/net/homes/home/tdurrant/Public/etopo1.nc",
+			    "/tmp/NZ.nc",
+			    155, 180, 1.0,
+			    30, 70, 1.0,
+			    -32767);
+  
   return _bathy_interpolate("/source/gridgen/noaa/reference_data/etopo1.nc",
 			    "../examples/nz/NZ.nc",
 			    155, 180, 1.0,
