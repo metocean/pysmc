@@ -18,7 +18,7 @@ PyObject * bathy_interp_interface       (PyObject *self,
 static PyMethodDef bathy_interp_module_methods[] = { 
   {   
     "bathy_interp",
-    bathy_interpolate,
+    bathy_interp_interface,
     METH_VARARGS| METH_KEYWORDS,
     "Interpolates a bathymetry."
   },
