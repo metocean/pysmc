@@ -2,6 +2,8 @@
 /*Interpolate etopo bathymetry to a coarser grid. */
 /*Uses the same mehod as gridgen matlab coade*/
 
+#include "bathy_interp.h"
+
 #include <glib.h>
 #include <netcdf.h>
 #include <stdio.h>
@@ -11,7 +13,16 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b)) 
 
 
-int main()
+
+int _bathy_interpolate(char * fnmin,
+		       char * fnmout,
+		       double lon0,
+		       double lon1,
+		       double dlon,
+		       double lat0,
+		       double lat1,
+		       double dlat,
+		       short fill_value)
 {
   int i, j;
   int ncid;
@@ -22,8 +33,8 @@ int main()
   nc_type type;
   int dimids[NC_MAX_VAR_DIMS];
   double fill_value_in;
-  char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc";
-  char fnmout[50] = "../examples/nz/NZ.nc";
+  /* char fnmin[50] = "/source/gridgen/noaa/reference_data/etopo1.nc"; */
+  /* char fnmout[50] = "../examples/nz/NZ.nc"; */
 
   // Here input file
   printf("-- Opening parent bathy %s \n", fnmin);
@@ -66,12 +77,13 @@ int main()
   g_assert(status == NC_NOERR);
   /*double lon0 = 0, lon1 = 360, dlon = 0.125, lon;*/
   /*double lat0 = -75, lat1 = 75, dlat = 0.125, lat;*/
-  double lon0 = 155, lon1 = 180, dlon = 1.0, lon;
+  //double lon0 = 155, lon1 = 180, dlon = 1.0, lon;
   // double lat0 = -55, lat1 = -30, dlat = 1.0, lat;
-  double lat0 = 30, lat1 = 70, dlat = 1.0, lat;
+  //double lat0 = 30, lat1 = 70, dlat = 1.0, lat;
+  double lon, lat;
   double ddlon = dlon/2.;
   double ddlat = dlat/2.;
-  short fill_value = -32767;
+  //short fill_value = -32767;
 
   // Check max grid extent
   lon1 = min(360-dlon, lon1);
@@ -250,3 +262,178 @@ int main()
   free(lats_in);
   return 1;
 }
+
+PyObject * bathy_interpolate(PyObject * _file_name_in,
+			     PyObject * _file_name_out,
+			     PyObject * _lon0,
+			     PyObject * _lon1,
+			     PyObject * _dlon,
+			     PyObject * _lat0,
+			     PyObject * _lat1,
+			     PyObject * _dlat,
+			     PyObject * _fill_value)
+{
+  char * filename_in = NULL, * filename_out = NULL;
+  double lon0, lon1, dlon;
+  double lat0, lat1, dlat;
+  short fill_value;
+
+  if ( _file_name_in == Py_None) {
+    PyErr_SetString(PyExc_TypeError, "Error filename_in is NULL.\n");
+    return NULL;
+  }
+  else {
+    if ( !PyUnicode_Check(_file_name_in) ) {
+      PyErr_SetString(PyExc_TypeError, "Error filename_in type error, string expected.\n");
+      return NULL;
+    }
+    if ( PyUnicode_KIND(_file_name_in) != PyUnicode_1BYTE_KIND ) {
+      PyErr_SetString(PyExc_TypeError, "Error filename_in type error, PyUnicode_1BYTE_DATA expected.\n");
+      return NULL;
+    }
+    filename_in = PyUnicode_1BYTE_DATA(_file_name_in);
+  }
+  
+  if ( _file_name_out == Py_None) {
+    PyErr_SetString(PyExc_TypeError, "Error filename_out is NULL.\n");
+    return NULL;
+  }
+  else {
+    if ( !PyUnicode_Check(_file_name_out) ) {
+      PyErr_SetString(PyExc_TypeError, "Error filename_out type error, string expected.\n");
+      return NULL;
+    }
+    if ( PyUnicode_KIND(_file_name_out) != PyUnicode_1BYTE_KIND ) {
+      PyErr_SetString(PyExc_TypeError, "Error filename_out type error, PyUnicode_1BYTE_DATA expected.\n");
+      return NULL;
+    }
+    filename_out = PyUnicode_1BYTE_DATA(_file_name_out);
+  }
+
+  // lon0
+  if ( PyFloat_Check(_lon0) )
+    lon0 = PyFloat_AS_DOUBLE(_lon0);
+  else if ( PyLong_Check(_lon0) )
+    lon0 = PyLong_AsDouble(_lon0);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error lon0 is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // lon1
+  if ( PyFloat_Check(_lon1) )
+    lon1 = PyFloat_AS_DOUBLE(_lon1);
+  else if ( PyLong_Check(_lon1) )
+    lon1 = PyLong_AsDouble(_lon1);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error lon1 is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // dlon
+  if ( PyFloat_Check(_dlon) )
+    dlon = PyFloat_AS_DOUBLE(_dlon);
+  else if ( PyLong_Check(_dlon) )
+    dlon = PyLong_AsDouble(_dlon);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error dlon is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // lat0
+  if ( PyFloat_Check(_lat0) )
+    lat0 = PyFloat_AS_DOUBLE(_lat0);
+  else if ( PyLong_Check(_lat0) )
+    lat0 = PyLong_AsDouble(_lat0);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error lat0 is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // lat1
+  if ( PyFloat_Check(_lat1) )
+    lat1 = PyFloat_AS_DOUBLE(_lat1);
+  else if ( PyLong_Check(_lat1) )
+    lat1 = PyLong_AsDouble(_lat1);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error lat1 is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // dlat
+  if ( PyFloat_Check(_dlat) )
+    dlat = PyFloat_AS_DOUBLE(_dlat);
+  else if ( PyLong_Check(_dlat) )
+    dlat = PyLong_AsDouble(_dlat);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error dlat is neither a float nor an integer\n");
+    return NULL;
+  }
+
+  // fill_value
+  if ( PyLong_Check(_fill_value) )
+    fill_value = PyLong_AsSize_t(_fill_value);
+  else {
+    PyErr_SetString(PyExc_TypeError,
+		    "Error dlat fill_value not integer\n");
+    return NULL;
+  }
+  
+  return PyBytes_FromString(filename_out);
+}
+
+PyObject * bathy_interp_interface (PyObject *self,
+				   PyObject *args,
+				   PyObject *keywds)
+{
+  PyObject * _file_name_in;
+  PyObject * _file_name_out;
+  PyObject * _lon0;
+  PyObject * _lon1;
+  PyObject * _dlon;
+  PyObject * _lat0;
+  PyObject * _lat1;
+  PyObject * _dlat;
+  PyObject * _fill_value;
+
+  static char *kwlist[] = {"file_name_in", "file_name_out", "lon0", "lon1", "dlon",
+			   "lat0", "lat1", "dlat", "fill_value", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(args, keywds, "OOOOOOOOO", kwlist,
+                                   &_file_name_in, &_file_name_out,
+                                   &_lon0, &_lon1, &_dlon,
+				   &_lat0, &_lat1, &_dlat,
+				   &_fill_value)) {
+    fprintf(stderr, "Failed to parse all argument\n");
+    return NULL;
+  }
+
+
+  return bathy_interpolate(_file_name_in,
+			   _file_name_out,
+			   _lon0,
+			   _lon1,
+			   _dlon,
+			   _lat0,
+			   _lat1,
+			   _dlat,
+			   _fill_value);
+
+  Py_RETURN_NONE;
+}
+
+int main ()
+{
+  return _bathy_interpolate("/source/gridgen/noaa/reference_data/etopo1.nc",
+			    "../examples/nz/NZ.nc",
+			    155, 180, 1.0,
+			    30, 70, 1.0,
+			    -32767);
+}
+  

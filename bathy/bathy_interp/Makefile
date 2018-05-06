@@ -1,5 +1,5 @@
 CC = gcc
-LFLAGS = -lnetcdf `pkg-config --cflags --libs glib-2.0 gmodule-2.0` -lm
+LFLAGS = -lnetcdf `pkg-config --cflags --libs glib-2.0 gmodule-2.0` -lm -lpython3.5m -I/usr/include/python3.5m/
 CFLAGS = -g $(LFLAGS)
 COMPILE = $(CC) $(CFLAGS) -c
 OBJFILES = etopo_interp_centred.o
