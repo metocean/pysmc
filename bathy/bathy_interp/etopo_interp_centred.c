@@ -378,12 +378,22 @@ PyObject * bathy_interpolate(PyObject * _file_name_in,
 
   // fill_value
   if ( PyLong_Check(_fill_value) )
-    fill_value = PyLong_AsSize_t(_fill_value);
+    fill_value = PyLong_AsLong(_fill_value);
   else {
     PyErr_SetString(PyExc_TypeError,
 		    "Error dlat fill_value not integer\n");
     return NULL;
   }
+
+  _bathy_interpolate(filename_in,
+		     filename_out,
+		     lon0,
+		     lon1,
+		     dlon,
+		     lat0,
+		     lat1,
+		     dlat,
+		     fill_value);
   
   return PyBytes_FromString(filename_out);
 }
